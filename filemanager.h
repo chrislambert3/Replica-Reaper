@@ -3,6 +3,7 @@
 #include <QString>
 #include <QWidget>
 #include <QObject>
+#include <QSystemTrayIcon>
 
 class FileManager : public QObject
 {
@@ -12,10 +13,11 @@ public:
     QString PromptDirectory(QWidget* widget);
     QByteArray HashFile(QString fileName);
     QStringList ListFiles(const QString& directoryPath);
-
+    void ShowNotification(const QString& title, const QString& message);
     ~FileManager();
 
 private:
+    QSystemTrayIcon* trayIcon;
 
 };
 

@@ -3,8 +3,20 @@
 #include <QFileDialog>
 #include <QCryptographicHash>
 #include <QFile>
+#include <QSystemTrayIcon>
+#include <QApplication>
+#include <QStyle>
 
-FileManager::FileManager(QObject* parent) : QObject(parent) {}
+FileManager::FileManager(QObject* parent)
+    : QObject(parent)
+    , trayIcon(new QSystemTrayIcon())
+{
+    //sets a standard tray icon for now
+    this->trayIcon->setIcon(QApplication::style()->standardIcon(QStyle::SP_MessageBoxInformation));
+    // can also set our custon icon like this
+    //trayIcon->setIcon(QIcon(":/icon.png")); // Set an icon (optional, ensure the path is correct)
+    this->trayIcon->show();
+}
 FileManager::~FileManager(){}
 
 QString FileManager::PromptDirectory(QWidget* parent){
@@ -49,5 +61,14 @@ QStringList FileManager::ListFiles(const QString& directoryPath) {
 
     qDebug() << "Files in directory:" << fullPaths;
     return fullPaths;
+}
+
+void FileManager::ShowNotification(const QString& title, const QString& message) {
+    if (!QSystemTrayIcon::isSystemTrayAvailable()) {
+        qWarning("System tray is not available.");
+        return;
+    }
+    // Display the notification
+    this->trayIcon->showMessage(title, message, QSystemTrayIcon::Information, 10000); // 10000 ms = 10 seconds till timeout
 }
 
