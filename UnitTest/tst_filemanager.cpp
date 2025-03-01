@@ -25,7 +25,7 @@ private slots:
     void initTestCase(); // initTestCase() will be called before any test function is executed.
 
     //<testnamefunction>_data() will be called to create a global test data table.
-    // Ex. testHashFile_data() will get called inside testHashFile()
+    // Ex. testHashFile_data() will get called inside testHashFile() before anything
     void testHashFile();
     void testHashFile_data();
     void testHashFile_FileNotFound();
@@ -89,7 +89,7 @@ void FileManagerTest::testHashFile_data()
     QString testFilesPath = testDir.filePath("TestFiles");
 
     // Add test data for files and their expected hash values
-    // *newRow(" custon test case name") << ** "filePath" column entry ** << ** "expected
+    // *newRow(" custom test case name") << ** "filePath" column entry ** << ** "expected
     QTest::newRow("Testing File Hash: test file 1") << testFilesPath + "/testfile1.txt" << QByteArray("dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f");
     QTest::newRow("Testing File Hash: test file 2") << testFilesPath + "/testfile2.txt" << QByteArray("564b97c72b1c73c308baecea3cece413e8026bfd76cd902fd2a0ea9e3febd0b2");
     QTest::newRow("Testing File Hash: empty file")  << testFilesPath + "/empty.txt"     << QByteArray("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
@@ -98,6 +98,7 @@ void FileManagerTest::testHashFile_data()
 // Test function that compares file hashes
 void FileManagerTest::testHashFile()
 {
+    //QFETCH is how it pulls the data from the table, will automatically run later
     QFETCH(QString, filePath);
     QFETCH(QByteArray, expectedHash);
 
