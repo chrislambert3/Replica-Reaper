@@ -69,3 +69,4 @@ install(TARGETS Replica-Reaper
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(Replica-Reaper)
 endif()
+add_subdirectory(UnitTest)
