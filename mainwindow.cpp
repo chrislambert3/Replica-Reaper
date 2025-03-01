@@ -8,6 +8,7 @@ MainWindow::MainWindow(QWidget *parent)
     ,manager(new FileManager())
 {
     ui->setupUi(this);
+    ui->progressBar->setValue(0);
 
     // this links the button on the UI to the event function
     // "pushButton" is the name of the variable on the ui
@@ -26,6 +27,11 @@ void MainWindow::onPushButtonClicked() {
     QString path = manager->PromptDirectory(this);
     QStringList filePaths = manager->ListFiles(path);
 
+    // Set up the progress bar
+    ui->progressBar->setValue(0); // sets it to 0
+    ui->progressBar->setMinimum(0); // Min value
+    ui->progressBar->setMaximum(filePaths.size()); // # of files to hash
+
     //Set a timer for hashing all files
     QElapsedTimer timer;
     timer.start();
@@ -34,6 +40,12 @@ void MainWindow::onPushButtonClicked() {
         QString file = filePaths[i];
         QByteArray hash = manager->HashFile(file);
         qDebug() << "File: " << file << "\nHash: " << hash;
+
+        // Update progress bar
+        ui->progressBar->setValue(i + 1);
+
+        // Process events to keep UI responsive (for progress bar)
+        QCoreApplication::processEvents();
     }
     // returns elapsed time in milliseconds ( /1000 for seconds)
     auto elapsedTime = timer.elapsed();
