@@ -77,8 +77,8 @@ void FileManagerTest::initTestCase() // will be called before the first test cas
     emptyFile.open(QIODevice::WriteOnly);
     emptyFile.close();
 }
-// This creates a data table scoped to only testHashFile() test function
-// Since theres 3 Rows testHashFile will run 3 times
+// This creates a data table scoped to only testHashFile() test function ONLY
+// Since theres 3 Rows testHashFile() will run 3 times with 3 entries
 void FileManagerTest::testHashFile_data()
 {
     QTest::addColumn<QString>("filePath");
@@ -98,7 +98,7 @@ void FileManagerTest::testHashFile_data()
 // Test function that compares file hashes
 void FileManagerTest::testHashFile()
 {
-    //QFETCH is how it pulls the data from the table, will automatically run later
+    //QFETCH is how it pulls the data from the testHashFile_data() table, will automatically run all rows
     QFETCH(QString, filePath);
     QFETCH(QByteArray, expectedHash);
 
@@ -150,7 +150,7 @@ void FileManagerTest::cleanupTestCase()
     // QFile::remove(testFilesPath + "/testfile2.txt");
     // QFile::remove(testFilesPath + "/empty.txt");
 }
-
+// this calls main for the test class
 QTEST_MAIN(FileManagerTest)
-
+// leave this inlcude alone
 #include "tst_filemanager.moc"
