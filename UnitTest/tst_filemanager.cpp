@@ -33,6 +33,8 @@ private slots:
     void myFirstTest();  // sample test with conditionals
     void mySecondTest(); // another sample
 
+    void testListFilesFail(); // test invalid directory returns empty QStringList()
+
     void cleanupTestCase(); // cleanupTestCase() will be called after the last test function was executed.
     // *****currently commented instructions to delete the 3 files from initTestCase()
 
@@ -135,7 +137,19 @@ void FileManagerTest::mySecondTest(){
     QVERIFY(10 > 5); // Passes if the condition is true
 }
 
+// Test to check invalid directory path returns a null list
+void FileManagerTest::testListFilesFail()
+{
+    qDebug("testListFilesFail test.");
 
+    QTest::ignoreMessage(QtWarningMsg, "Directory does not exist: \"/path/to/invalid/directory\"");
+    QString invalidPath = "/path/to/invalid/directory";
+
+    QStringList res = testManager.ListFiles(invalidPath);
+
+    QCOMPARE(res.isEmpty(), true);
+
+}
 
 // Cleans up after all test functions have executed
 void FileManagerTest::cleanupTestCase()
