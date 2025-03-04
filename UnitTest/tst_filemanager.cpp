@@ -142,13 +142,11 @@ void FileManagerTest::testListFilesFail()
 {
     qDebug("testListFilesFail test.");
 
+    // ignore warning for non-existent directory
     QTest::ignoreMessage(QtWarningMsg, "Directory does not exist: \"/path/to/invalid/directory\"");
-    QString invalidPath = "/path/to/invalid/directory";
 
-    QStringList res = testManager.ListFiles(invalidPath);
-
-    QCOMPARE(res.isEmpty(), true);
-
+    QStringList result = testManager.ListFiles("/path/to/invalid/directory");
+    QCOMPARE(result.isEmpty(), true);
 }
 
 // Cleans up after all test functions have executed
