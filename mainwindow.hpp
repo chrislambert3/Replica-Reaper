@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "filemanager.h"
+#include "filemanager.hpp"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
