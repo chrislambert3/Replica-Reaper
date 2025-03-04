@@ -1,5 +1,6 @@
-#ifndef FILEMANAGER_H
-#define FILEMANAGER_H
+#pragma once
+#ifndef FILEMANAGER_HPP
+#define FILEMANAGER_HPP
 #include <QString>
 #include <QWidget>
 #include <QObject>
@@ -21,4 +22,4 @@ private:
 
 };
 
-#endif // FILEMANAGER_H
+#endif // FILEMANAGER_HPP
