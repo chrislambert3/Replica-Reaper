@@ -138,7 +138,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Select Directory for Analysis</string>
+     <string>Select File for Cross Ref.</string>
     </property>
    </widget>
   </widget>

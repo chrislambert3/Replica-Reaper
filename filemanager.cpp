@@ -1,5 +1,6 @@
 #include "filemanager.h"
 #include "mainwindow.h"
+#include "FileInfo.hpp"
 #include <QString>
 #include <QFileDialog>
 #include <QCryptographicHash>
@@ -71,5 +72,11 @@ void FileManager::ShowNotification(const QString& title, const QString& message)
     }
     // Display the notification
     this->trayIcon->showMessage(title, message, QSystemTrayIcon::Information, 10000); // 10000 ms = 10 seconds till timeout
+}
+//This file should add to the qlist of qlists of FileInfos
+//if a duplicate isnt found already in here an exception is thrown
+//
+void FileManager::AddToDupes(const FileInfo& File){
+    return;
 }
 

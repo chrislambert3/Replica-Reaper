@@ -55,12 +55,13 @@ void MainWindow::onPushButtonClicked() {
     manager->ShowNotification("Hashing Complete", message);
     addFileToList(path, QByteArray("")); // DEBUG
 }
+
 //adds one file to qlistwidget
 //duplicates will be located adjacently
 //currently a stub function for testing
 //currently just adds string including filepath and date
 //Does not currently locate items adjacently
-
+//NEED TO REFACTOR SO IT TAKES A FILEINFO
 void MainWindow::addFileToList(const QString& FilePath, const QByteArray& hash){
     QDateTime currentDateTime = QDateTime::currentDateTime();
     QString ItemToAdd = FilePath;
