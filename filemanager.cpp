@@ -1,4 +1,5 @@
 #include "filemanager.h"
+#include "mainwindow.h"
 #include <QString>
 #include <QFileDialog>
 #include <QCryptographicHash>
