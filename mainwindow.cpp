@@ -51,7 +51,7 @@ void MainWindow::onPushButtonClicked() {
                       fs::file_size(fPath), hash, currentDateTime);
         //Push and sort FileInfo class into FileManager class
         manager->addFileToList(file);
-        std::cout << *manager;
+        std::cout << *manager; // DEBUG *************
 
         qDebug() << "File: " << filePaths[i] << "\nHash: " << hash;
 
@@ -65,7 +65,7 @@ void MainWindow::onPushButtonClicked() {
     auto elapsedTime = timer.elapsed();
     QString message = "Took " + QString::number(elapsedTime / 1000.0, 'f') + " seconds";
     manager->ShowNotification("Hashing Complete", message);
-    addFileToUIList(path, QByteArray("")); // DEBUG
+    ShowDupesInUI(*manager);
 
 }
 
@@ -75,11 +75,33 @@ void MainWindow::onPushButtonClicked() {
 //currently just adds string including filepath and date
 //Does not currently locate items adjacently
 //NEED TO REFACTOR SO IT TAKES A FILEINFO
-void MainWindow::addFileToUIList(const QString& FilePath, const QByteArray& hash){
+void MainWindow::ShowDupesInUI(const FileManager& f){
+    for (const auto& [fileType, MapSize] : f.AllFilesByTypeSize) {
+        // out << "File Type: " << fileType.toStdString() << "\n";
+        for (const auto& [fileSize, fileList] : MapSize) {
+            // out << "  Size: " << fileSize << " bytes\n";
+            for (const auto& file : fileList) {
+                if (fileList.size() <= 1) {
+                    std::cout << "am i in case 1********\n";
+                    continue;   // throw exception?
+                } else {
+                    std::cout << "am i in case 2********\n";
+                    QString out = QString::fromStdString(file.getFilePath().string());
+                    //std::cout << file.getFilePathFuckQstring();
+                    out.append("     ");
+                    ui->listWidget->addItem(out);
+                }
+            }
+        }
+    }
+/*
+
+
     QDateTime currentDateTime = QDateTime::currentDateTime();
     QString ItemToAdd = FilePath;
     ItemToAdd.append("     ");
     ItemToAdd.append(currentDateTime.toString());
     ui->listWidget->addItem(ItemToAdd);
+*/
     return;
 }

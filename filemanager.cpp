@@ -71,23 +71,30 @@ void FileManager::addFileToList(const FileInfo& file) {
         AllFilesByTypeSize[file.getFileType()][file.getFileSize()] = {file};
     } else { // check for existing type
         auto typeIt = AllFilesByTypeSize.find(file.getFileType());
-        if (typeIt != AllFilesByTypeSize.end()) {
+        if (typeIt != AllFilesByTypeSize.end()) { // type found case
             auto& sizes = typeIt->second;
             auto sizeIt = sizes.find(file.getFileSize());
 
-            if (sizeIt != sizes.end()) {
+            if (sizeIt != sizes.end()) {  //  size found case
                 sizeIt->second.push_back(file);
-            } else {
+                //check file for dupes
+                CheckAndAddDupes(sizeIt->second, file);
+            } else {  //  size not found case
                 sizes[file.getFileSize()] = {file};
             }
 
-        } else {
+        } else {  //  type not found case
             AllFilesByTypeSize[file.getFileType()][file.getFileSize()] = {file};
         }
     }
 
 
     //
+}
+void FileManager::CheckAndAddDupes(const std::list<FileInfo>& list, const FileInfo& file) {
+    //check hashes and confirm filepaths not same
+    //stub
+    return;
 }
 
 std::ostream& operator<<(std::ostream& out, const FileManager& f) {
