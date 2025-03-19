@@ -3,10 +3,11 @@
 #include <QDateTime>
 #include <filesystem>
 #include <iostream>
-#include "mainwindow.h"
-#include "./ui_mainwindow.h"
-#include "filemanager.h"
 #include "FileInfo.hpp"
+#include "mainwindow.hpp"
+#include "./ui_mainwindow.h"
+#include "filemanager.hpp"
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)

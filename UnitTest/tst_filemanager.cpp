@@ -1,6 +1,6 @@
 #include <QCoreApplication>
 #include <QTest>
-#include "../filemanager.h"
+#include "../filemanager.hpp"
 #include <QTemporaryFile>
 // add necessary includes here
 

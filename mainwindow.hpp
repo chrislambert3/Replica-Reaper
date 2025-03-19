@@ -1,8 +1,9 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
+#ifndef MAINWINDOW_HPP
+#define MAINWINDOW_HPP
 
 #include <QMainWindow>
-#include "filemanager.h"
+#include "filemanager.hpp"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -25,4 +26,4 @@ private:
     FileManager *manager;
 
 };
-#endif // MAINWINDOW_H
+#endif // MAINWINDOW_HPP

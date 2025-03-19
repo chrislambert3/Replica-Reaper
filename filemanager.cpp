@@ -1,5 +1,5 @@
-#include "filemanager.h"
-#include "mainwindow.h"
+#include "filemanager.hpp"
+#include "mainwindow.hpp"
 #include "FileInfo.hpp"
 #include <QString>
 #include <QFileDialog>
