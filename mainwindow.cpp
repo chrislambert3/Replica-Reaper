@@ -1,9 +1,12 @@
 #include <QString>
 #include <QListWidget>
 #include <QDateTime>
+#include <filesystem>
+#include <iostream>
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 #include "filemanager.h"
+#include "FileInfo.hpp"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -39,9 +42,18 @@ void MainWindow::onPushButtonClicked() {
     timer.start();
     // Loop through each file and hash it (prints to console for now)
     for (int i = 0; i < filePaths.size(); ++i) {
-        QString file = filePaths[i];
-        QByteArray hash = manager->HashFile(file);
-        qDebug() << "File: " << file << "\nHash: " << hash;
+        //setup for FileInfo class
+        //QString file = filePaths[i];
+        QByteArray hash = manager->HashFile(filePaths[i]);
+        fs::path fPath = filePaths[i].toStdString();
+        QDateTime currentDateTime = QDateTime::currentDateTime();
+        FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
+                      fs::file_size(fPath), hash, currentDateTime);
+        //Push and sort FileInfo class into FileManager class
+        manager->addFileToList(file);
+        std::cout << *manager;
+
+        qDebug() << "File: " << filePaths[i] << "\nHash: " << hash;
 
         // Update progress bar
         ui->progressBar->setValue(i + 1);
@@ -53,7 +65,8 @@ void MainWindow::onPushButtonClicked() {
     auto elapsedTime = timer.elapsed();
     QString message = "Took " + QString::number(elapsedTime / 1000.0, 'f') + " seconds";
     manager->ShowNotification("Hashing Complete", message);
-    addFileToList(path, QByteArray("")); // DEBUG
+    addFileToUIList(path, QByteArray("")); // DEBUG
+
 }
 
 //adds one file to qlistwidget
@@ -62,7 +75,7 @@ void MainWindow::onPushButtonClicked() {
 //currently just adds string including filepath and date
 //Does not currently locate items adjacently
 //NEED TO REFACTOR SO IT TAKES A FILEINFO
-void MainWindow::addFileToList(const QString& FilePath, const QByteArray& hash){
+void MainWindow::addFileToUIList(const QString& FilePath, const QByteArray& hash){
     QDateTime currentDateTime = QDateTime::currentDateTime();
     QString ItemToAdd = FilePath;
     ItemToAdd.append("     ");

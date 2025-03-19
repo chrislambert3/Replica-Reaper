@@ -65,6 +65,44 @@ QStringList FileManager::ListFiles(const QString& directoryPath) {
     return fullPaths;
 }
 
+void FileManager::addFileToList(const FileInfo& file) {
+    // if empty, add item to list
+    if (AllFilesByTypeSize.empty()) {
+        AllFilesByTypeSize[file.getFileType()][file.getFileSize()] = {file};
+    } else { // check for existing type
+        auto typeIt = AllFilesByTypeSize.find(file.getFileType());
+        if (typeIt != AllFilesByTypeSize.end()) {
+            auto& sizes = typeIt->second;
+            auto sizeIt = sizes.find(file.getFileSize());
+
+            if (sizeIt != sizes.end()) {
+                sizeIt->second.push_back(file);
+            } else {
+                sizes[file.getFileSize()] = {file};
+            }
+
+        } else {
+            AllFilesByTypeSize[file.getFileType()][file.getFileSize()] = {file};
+        }
+    }
+
+
+    //
+}
+
+std::ostream& operator<<(std::ostream& out, const FileManager& f) {
+    for (const auto& [fileType, MapSize] : f.AllFilesByTypeSize) {
+        out << "File Type: " << fileType.toStdString() << "\n";
+        for (const auto& [fileSize, fileList] : MapSize) {
+            out << "  Size: " << fileSize << " bytes\n";
+            for (const auto& file : fileList) {
+                out << "    - " << file.getFilePath() << "\n";
+            }
+        }
+    }
+    return out;
+}
+
 void FileManager::ShowNotification(const QString& title, const QString& message) {
     if (!QSystemTrayIcon::isSystemTrayAvailable()) {
         qWarning("System tray is not available.");

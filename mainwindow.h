@@ -17,7 +17,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     void onPushButtonClicked();
-    void addFileToList(const QString& FilePath, const QByteArray& hash);
+    void addFileToUIList(const QString& FilePath, const QByteArray& hash);
     ~MainWindow();
 
 private:
