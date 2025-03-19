@@ -1,4 +1,6 @@
 #include "filemanager.h"
+#include "mainwindow.h"
+#include "FileInfo.hpp"
 #include <QString>
 #include <QFileDialog>
 #include <QCryptographicHash>
@@ -63,6 +65,51 @@ QStringList FileManager::ListFiles(const QString& directoryPath) {
     return fullPaths;
 }
 
+void FileManager::addFileToList(const FileInfo& file) {
+    // if empty, add item to list
+    if (AllFilesByTypeSize.empty()) {
+        AllFilesByTypeSize[file.getFileType()][file.getFileSize()] = {file};
+    } else { // check for existing type
+        auto typeIt = AllFilesByTypeSize.find(file.getFileType());
+        if (typeIt != AllFilesByTypeSize.end()) { // type found case
+            auto& sizes = typeIt->second;
+            auto sizeIt = sizes.find(file.getFileSize());
+
+            if (sizeIt != sizes.end()) {  //  size found case
+                sizeIt->second.push_back(file);
+                //check file for dupes
+                CheckAndAddDupes(sizeIt->second, file);
+            } else {  //  size not found case
+                sizes[file.getFileSize()] = {file};
+            }
+
+        } else {  //  type not found case
+            AllFilesByTypeSize[file.getFileType()][file.getFileSize()] = {file};
+        }
+    }
+
+
+    //
+}
+void FileManager::CheckAndAddDupes(const std::list<FileInfo>& list, const FileInfo& file) {
+    //check hashes and confirm filepaths not same
+    //stub
+    return;
+}
+
+std::ostream& operator<<(std::ostream& out, const FileManager& f) {
+    for (const auto& [fileType, MapSize] : f.AllFilesByTypeSize) {
+        out << "File Type: " << fileType.toStdString() << "\n";
+        for (const auto& [fileSize, fileList] : MapSize) {
+            out << "  Size: " << fileSize << " bytes\n";
+            for (const auto& file : fileList) {
+                out << "    - " << file.getFilePath() << "\n";
+            }
+        }
+    }
+    return out;
+}
+
 void FileManager::ShowNotification(const QString& title, const QString& message) {
     if (!QSystemTrayIcon::isSystemTrayAvailable()) {
         qWarning("System tray is not available.");
@@ -70,5 +117,11 @@ void FileManager::ShowNotification(const QString& title, const QString& message)
     }
     // Display the notification
     this->trayIcon->showMessage(title, message, QSystemTrayIcon::Information, 10000); // 10000 ms = 10 seconds till timeout
+}
+//This file should add to the qlist of qlists of FileInfos
+//if a duplicate isnt found already in here an exception is thrown
+//
+void FileManager::AddToDupes(const FileInfo& File){
+    return;
 }
 
