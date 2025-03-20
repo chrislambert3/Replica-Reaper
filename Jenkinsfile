@@ -32,6 +32,7 @@ pipeline {
                         echo "Extracting files and setting up directories..."
                         powershell -command "Remove-Item -Recurse -Force C:\\Users\\vboxuser\\RR-Build"
                         powershell -command "Expand-Archive C:\\Users\\vboxuser\\build.zip C:\\Users\\vboxuser\\RR-Build"
+                        exit 1
                         EOF
                     """
                 }
