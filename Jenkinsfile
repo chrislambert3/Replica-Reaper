@@ -6,7 +6,9 @@ pipeline {
         //catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') // Catch errors and set failure status
     }
 
-    stages {  
+    stages {
+        
+        
         stage('Setting Build Status on Github'){
             steps {
             setBuildStatus("Build ${BUILD_DISPLAY_NAME} Pending", "PENDING")
@@ -32,14 +34,13 @@ pipeline {
                         echo "Extracting files and setting up directories..."
                         powershell -command "Remove-Item -Recurse -Force C:\\Users\\vboxuser\\RR-Build"
                         powershell -command "Expand-Archive C:\\Users\\vboxuser\\build.zip C:\\Users\\vboxuser\\RR-Build"
-                        exit 1
                         EOF
                     """
                 }
             }
         }
 
-        stage('Build & Deploy') {
+        stage('Building Application') {
             steps {
                 sshagent(['windowsvm-key']) {
                     sh """
@@ -50,17 +51,14 @@ pipeline {
                         cd C:\\Users\\vboxuser\\RR-App
                         ninja
 
-                        echo "Deploying artifacts..."
+                        echo "Packaging Dependencies..."
                         powershell -command "cp C:\\Users\\vboxuser\\RR-App\\Replica-Reaper.exe C:\\Users\\vboxuser\\RR-Executable\\Replica-Reaper.exe"
                         powershell -command "cp C:\\Users\\vboxuser\\RR-App\\UnitTest\\UnitTests.exe C:\\Users\\vboxuser\\RR-UnitTests\\UnitTests.exe"
 
-                        echo "Running windeployqt..."
                         cd C:\\Users\\vboxuser\\RR-Executable
                         windeployqt .
                         cd C:\\Users\\vboxuser\\RR-UnitTests
                         windeployqt .
-                        echo "Running Unit Tests..."
-                        C:\\Users\\vboxuser\\RR-UnitTests\\UnitTests.exe
 
                         echo "Creating final archive..."
                         powershell -command "Compress-Archive -Path C:\\Users\\vboxuser\\RR-Executable, C:\\Users\\vboxuser\\RR-UnitTests -DestinationPath C:\\Users\\vboxuser\\RR-Executable-UnitTests.zip -Force"
@@ -78,6 +76,19 @@ pipeline {
                 }
             }
         }
+        stage("Running Unit Tests"){
+            steps{
+                sshagent(['windowsvm-key']) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no vboxuser@windowsvm << EOF
+                        echo "Running Unit Tests..."
+                        C:\\Users\\vboxuser\\RR-UnitTests\\UnitTests.exe
+                        echo %ERRORLEVEL%
+                        EOF
+                    """
+                }
+            }
+        }
 
         stage("Copy Artifacts to Jenkins") {
             steps {
@@ -86,10 +97,9 @@ pipeline {
                 }
             }
         }
-
-        stage('Completion') {
-            steps {
-                echo "Build completed successfully."
+        stage('Archiving'){
+            steps{
+               archiveArtifacts artifacts: 'RR-Executable-UnitTests.zip', followSymlinks: false, onlyIfSuccessful: true 
             }
         }
     }
@@ -102,6 +112,7 @@ pipeline {
         }
     }
 }
+
 void setBuildStatus(String message, String state) {
     step([
         $class: "GitHubCommitStatusSetter",
