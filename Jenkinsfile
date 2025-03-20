@@ -83,8 +83,7 @@ pipeline {
                         ssh -o StrictHostKeyChecking=no vboxuser@windowsvm << EOF
                         echo "Running Unit Tests..."
                         C:\\Users\\vboxuser\\RR-UnitTests\\UnitTests.exe
-                        echo %ERRORLEVEL%
-                        exit 3
+                        exit %ERRORLEVEL%
                         EOF
                     """
                 }
