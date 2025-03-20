@@ -31,7 +31,7 @@ QByteArray FileManager::HashFile(QString fileName){
     // Opens the file
     QFile file(fileName);
     // sets the hash generator
-    QCryptographicHash hash(QCryptographicHash::Sha256);
+    QCryptographicHash hash(QCryptographicHash::Md5);
 
     if (!file.open(QIODevice::ReadOnly)) {
         qWarning() << "Could not open file:" << fileName;
