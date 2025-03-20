@@ -16,6 +16,7 @@ pipeline {
         stage('Extract & Setup on Windows VM') {
             steps {
                 sshagent(['windowsvm-key']) {
+                    sh 'cat filemanager.cpp'
                     sh """
                         ssh -o StrictHostKeyChecking=no vboxuser@windowsvm << EOF
                         echo "Extracting files and setting up directories..."
