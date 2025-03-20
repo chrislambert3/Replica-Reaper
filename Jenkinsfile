@@ -6,17 +6,27 @@ pipeline {
         //catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') // Catch errors and set failure status
     }
 
-    stages {
-        
+    stages {  
         stage('Setting Build Status on Github'){
             steps {
             setBuildStatus("Build ${BUILD_DISPLAY_NAME} Pending", "PENDING")
             }
         }
+        stage('Zipping Source Files') {
+            steps {
+                sshagent(['windowsvm-key']) {
+                    sh """
+                        echo "Zipping and transferring files..."
+                        zip -r build.zip . -x "*.git/*"
+                        scp -o StrictHostKeyChecking=no build.zip vboxuser@windowsvm:build.zip
+                        rm build.zip
+                    """
+                }
+            }
+        }
         stage('Extract & Setup on Windows VM') {
             steps {
                 sshagent(['windowsvm-key']) {
-                    sh 'cat filemanager.cpp'
                     sh """
                         ssh -o StrictHostKeyChecking=no vboxuser@windowsvm << EOF
                         echo "Extracting files and setting up directories..."
