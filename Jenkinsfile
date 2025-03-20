@@ -84,6 +84,7 @@ pipeline {
                         echo "Running Unit Tests..."
                         C:\\Users\\vboxuser\\RR-UnitTests\\UnitTests.exe
                         echo %ERRORLEVEL%
+                        exit 3
                         EOF
                     """
                 }
