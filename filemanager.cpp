@@ -68,28 +68,16 @@ QStringList FileManager::ListFiles(const QString& directoryPath) {
 }
 
 void FileManager::addFileToList(const FileInfo& file) {
-    // if empty, add item to list
-    if (AllFilesByTypeSize.empty()) {
-        AllFilesByTypeSize[file.getFileType()][file.getFileSize()] = {file};
-    } else {  // check for existing type
-        auto typeIt = AllFilesByTypeSize.find(file.getFileType());
-        if (typeIt != AllFilesByTypeSize.end()) {  // type found case
-            auto& sizes = typeIt->second;
-            auto sizeIt = sizes.find(file.getFileSize());
+    auto& sizeMap = AllFilesByTypeSize[file.getFileType()];
+    auto& fileList = sizeMap[file.getFileSize()];
 
-            if (sizeIt != sizes.end()) {  // size found case
-                sizeIt->second.push_back(file);
-                // check file for dupes
-                CheckAndAddDupes(sizeIt->second, file);
-            } else {  //  size not found case
-                sizes[file.getFileSize()] = {file};
-            }
+    fileList.push_back(file);
 
-        } else {  // type not found case
-            AllFilesByTypeSize[file.getFileType()][file.getFileSize()] = {file};
-        }
-    }
+    // Check for duplicates (if list has more than one file now)
+    if (fileList.size() > 1)
+        CheckAndAddDupes(fileList, file);
 }
+
 void FileManager::CheckAndAddDupes(const std::list<FileInfo>& list, const FileInfo& file) {
     // check hashes and confirm filepaths not same
     // stub
