@@ -1,5 +1,6 @@
-#ifndef FILEINFO_H
-#define FILEINFO_H
+// Copyright 2025 Replica Reaper
+#ifndef FILEINFO_HPP
+#define FILEINFO_HPP
 #include <QString>
 #include <QDateTime>
 #include <cstdint>
@@ -7,9 +8,8 @@
 
 namespace fs = std::filesystem;
 
-
 class FileInfo{
-public:
+ public:
     FileInfo(const fs::path& FilePath,
              const QString& FileType,
              const uintmax_t FileSize,
@@ -19,20 +19,19 @@ public:
             _FileType(FileType),
             _FileSize(FileSize),
             _Hash(Hash),
-            _DateFound(DateFound){}
-    const fs::path& getFilePath() const { return _FilePath; };
-    const QByteArray& getHash() const { return _Hash; };
-    const QDateTime& getDate() const { return _DateFound; };
-    const QString& getFileType() const { return _FileType; };
-    const uintmax_t& getFileSize() const { return _FileSize; };
+            _DateFound(DateFound) {}
+    const fs::path& getFilePath() const { return _FilePath; }
+    const QByteArray& getHash() const { return _Hash; }
+    const QDateTime& getDate() const { return _DateFound; }
+    const QString& getFileType() const { return _FileType; }
+    const uintmax_t& getFileSize() const { return _FileSize; }
 
-private:
+ private:
     fs::path _FilePath;
     QString _FileType;
     uintmax_t _FileSize;
     QByteArray _Hash;
     QDateTime _DateFound;
-
 };
 
-#endif // FILEINFO_H
+#endif /* FILEINFO_HPP */
