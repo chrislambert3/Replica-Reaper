@@ -2,6 +2,8 @@
 #include <QTest>
 #include "../filemanager.hpp"
 #include <QTemporaryFile>
+#include <filesystem>
+#include <string>
 // add necessary includes here
 
 /*
@@ -34,6 +36,7 @@ private slots:
     void mySecondTest(); // another sample
 
     void testListFilesFail(); // test invalid directory returns empty QStringList()
+    void testAddFileToList();
 
     void cleanupTestCase(); // cleanupTestCase() will be called after the last test function was executed.
     // *****currently commented instructions to delete the 3 files from initTestCase()
@@ -73,6 +76,12 @@ void FileManagerTest::initTestCase() // will be called before the first test cas
     if (file2.open(QIODevice::WriteOnly)) {
         file2.write("Another test file.");  // Known content
         file2.close();
+    }
+
+    QFile file3(testFilesPath + "/testfile3.txt");
+    if (file3.open(QIODevice::WriteOnly)) {
+        file3.write("Hello, World!");  // Known content
+        file3.close();
     }
 
     QFile emptyFile(testFilesPath + "/empty.txt");
@@ -147,6 +156,54 @@ void FileManagerTest::testListFilesFail()
 
     QStringList result = testManager.ListFiles("/path/to/invalid/directory");
     QCOMPARE(result.isEmpty(), true);
+}
+
+// Test to check files added to list
+void FileManagerTest::testAddFileToList() {
+    qDebug("testAddFileToList adding first file test.");
+
+    // create test files to ensure its added correctly
+    fs::path fPath = "TestFiles/testfile1.txt";
+    FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
+                  fs::file_size(fPath), testManager.HashFile("TestFiles/testfile1.txt"),
+                  QDateTime::currentDateTime());
+
+    fs::path fPathDupe = "TestFiles/testfile3.txt";
+    FileInfo fileDupe(fPathDupe, QString::fromStdString(fPathDupe.extension().string()),
+                  fs::file_size(fPathDupe), testManager.HashFile("TestFiles/testfile3.txt"),
+                  QDateTime::currentDateTime());
+
+    fs::path fPathDiff = "TestFiles/testfile2.txt";
+    FileInfo fileDiff(fPathDiff, QString::fromStdString(fPathDiff.extension().string()),
+                      fs::file_size(fPathDiff), testManager.HashFile("TestFiles/testfile2.txt"),
+                      QDateTime::currentDateTime());
+
+    // add test file to list
+    testManager.addFileToList(file);
+
+    // verify file type has 1 entry
+    QVERIFY(testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()].size() == 1);
+
+    // verify file matches
+    QCOMPARE(testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()].front().getFilePath(), file.getFilePath());
+
+    qDebug("testAddFileToList verifying duplicate goes to the same list");
+
+    // add test file to list
+    testManager.addFileToList(fileDupe);
+
+    // verify type and size have 2 entries
+    QVERIFY(testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()].size() == 2);
+
+    qDebug("testAddFileToList verifying non-duplicate goes to different size list");
+
+    // add different test file to list
+    testManager.addFileToList(fileDiff);
+
+    // test files at different location
+    QVERIFY(testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()].size() == 2);
+    QVERIFY(testManager.AllFilesByTypeSize[fileDiff.getFileType()][fileDiff.getFileSize()].size() == 1);
+    QVERIFY(file.getHash() != fileDiff.getHash());  // verify different hash
 }
 
 // Cleans up after all test functions have executed
