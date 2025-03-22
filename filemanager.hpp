@@ -1,3 +1,4 @@
+// Copyright 2025 Replica Reaper
 #pragma once
 #ifndef FILEMANAGER_HPP
 #define FILEMANAGER_HPP
@@ -12,10 +13,10 @@
 
 using std::unordered_map;
 
-class FileManager : public QObject
-{
+class FileManager : public QObject {
     Q_OBJECT
-public:
+
+ public:
     explicit FileManager(QObject* parent = nullptr);
     QString PromptDirectory(QWidget* widget);
     QByteArray HashFile(QString fileName);
@@ -31,13 +32,13 @@ public:
 
     unordered_map<QString, unordered_map<uintmax_t, std::list<FileInfo>>> AllFilesByTypeSize;
 
-private:
+ private:
     QSystemTrayIcon* trayIcon;
-    //Map filtered by file type and then file size
-    //unordered_map<QString, unordered_map<uintmax_t, std::list<FileInfo>>> AllFilesByTypeSize;
-    //Holds list of list of duplicates
-    //no particular order
+    // Map filtered by file type and then file size
+    // unordered_map<QString, unordered_map<uintmax_t, std::list<FileInfo>>> AllFilesByTypeSize;
+    // Holds list of list of duplicates
+    // no particular order
     unordered_map<QByteArray, std::list<FileInfo>> Dupes;
 };
 
-#endif // FILEMANAGER_HPP
+#endif /* FILEMANAGER_HPP */
