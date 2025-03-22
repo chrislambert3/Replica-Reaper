@@ -1,6 +1,4 @@
-#include "filemanager.hpp"
-#include "mainwindow.hpp"
-#include "FileInfo.hpp"
+// Copyright 2025 Replica Reaper
 #include <QString>
 #include <QFileDialog>
 #include <QCryptographicHash>
@@ -8,26 +6,30 @@
 #include <QSystemTrayIcon>
 #include <QApplication>
 #include <QStyle>
+#include <list>
+#include "filemanager.hpp"
+#include "mainwindow.hpp"
+#include "FileInfo.hpp"
 
 FileManager::FileManager(QObject* parent)
     : QObject(parent)
-    , trayIcon(new QSystemTrayIcon())
-{
-    //sets a standard tray icon for now
+    , trayIcon(new QSystemTrayIcon()) {
+    // sets a standard tray icon for now
     this->trayIcon->setIcon(QApplication::style()->standardIcon(QStyle::SP_MessageBoxInformation));
     // can also set our custon icon like this
-    //trayIcon->setIcon(QIcon(":/icon.png")); // Set an icon (optional, ensure the path is correct)
+    // trayIcon->setIcon(QIcon(":/icon.png")); // Set an icon (optional, ensure the path is correct)
     this->trayIcon->show();
 }
-FileManager::~FileManager(){}
+FileManager::~FileManager() {}
 
-QString FileManager::PromptDirectory(QWidget* parent){
-    QString filePath = QFileDialog::getExistingDirectory(parent, "Open a Directory", QDir::homePath(), QFileDialog::DontResolveSymlinks);
+QString FileManager::PromptDirectory(QWidget* parent) {
+    QString filePath = QFileDialog::getExistingDirectory(parent,
+                        "Open a Directory", QDir::homePath(), QFileDialog::DontResolveSymlinks);
     qDebug() <<"Selected File Path: " <<filePath;
     return filePath;
 }
 
-QByteArray FileManager::HashFile(QString fileName){
+QByteArray FileManager::HashFile(QString fileName) {
     // Opens the file
     QFile file(fileName);
     // sets the hash generator
@@ -69,31 +71,28 @@ void FileManager::addFileToList(const FileInfo& file) {
     // if empty, add item to list
     if (AllFilesByTypeSize.empty()) {
         AllFilesByTypeSize[file.getFileType()][file.getFileSize()] = {file};
-    } else { // check for existing type
+    } else {  // check for existing type
         auto typeIt = AllFilesByTypeSize.find(file.getFileType());
-        if (typeIt != AllFilesByTypeSize.end()) { // type found case
+        if (typeIt != AllFilesByTypeSize.end()) {  // type found case
             auto& sizes = typeIt->second;
             auto sizeIt = sizes.find(file.getFileSize());
 
-            if (sizeIt != sizes.end()) {  //  size found case
+            if (sizeIt != sizes.end()) {  // size found case
                 sizeIt->second.push_back(file);
-                //check file for dupes
+                // check file for dupes
                 CheckAndAddDupes(sizeIt->second, file);
             } else {  //  size not found case
                 sizes[file.getFileSize()] = {file};
             }
 
-        } else {  //  type not found case
+        } else {  // type not found case
             AllFilesByTypeSize[file.getFileType()][file.getFileSize()] = {file};
         }
     }
-
-
-    //
 }
 void FileManager::CheckAndAddDupes(const std::list<FileInfo>& list, const FileInfo& file) {
-    //check hashes and confirm filepaths not same
-    //stub
+    // check hashes and confirm filepaths not same
+    // stub
     return;
 }
 
@@ -115,13 +114,14 @@ void FileManager::ShowNotification(const QString& title, const QString& message)
         qWarning("System tray is not available.");
         return;
     }
-    // Display the notification
-    this->trayIcon->showMessage(title, message, QSystemTrayIcon::Information, 10000); // 10000 ms = 10 seconds till timeout
+
+    // Display the notification | 10000 ms = 10 seconds till timeout
+    this->trayIcon->showMessage(title, message, QSystemTrayIcon::Information, 10000);
 }
-//This file should add to the qlist of qlists of FileInfos
-//if a duplicate isnt found already in here an exception is thrown
-//
-void FileManager::AddToDupes(const FileInfo& File){
+// This file should add to the qlist of qlists of FileInfos
+// if a duplicate isnt found already in here an exception is thrown
+
+void FileManager::AddToDupes(const FileInfo& File) {
     return;
 }
 
