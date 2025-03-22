@@ -1,3 +1,4 @@
+// Copyright 2025 Replica Reaper
 #pragma once
 #ifndef MAINWINDOW_HPP
 #define MAINWINDOW_HPP
@@ -11,19 +12,17 @@ class MainWindow;
 }
 QT_END_NAMESPACE
 
-class MainWindow : public QMainWindow
-{
+class MainWindow : public QMainWindow {
     Q_OBJECT
 
-public:
-    MainWindow(QWidget *parent = nullptr);
+ public:
+    explicit MainWindow(QWidget *parent = nullptr);
     void onPushButtonClicked();
     void ShowDupesInUI(const FileManager& f);
     ~MainWindow();
 
-private:
+ private:
     Ui::MainWindow *ui;
     FileManager *manager;
-
 };
-#endif // MAINWINDOW_HPP
+#endif /* MAINWINDOW_HPP */

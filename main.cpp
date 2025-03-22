@@ -1,9 +1,8 @@
+// Copyright 2025 Replica Reaper
+#include <QApplication>
 #include "mainwindow.hpp"
 
-#include <QApplication>
-
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
 
     QWidget widget;
