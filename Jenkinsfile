@@ -26,6 +26,11 @@ pipeline {
                 }
             }
         }
+        stage('Linting Files') {
+            steps {
+                sh 'cpplint *.cpp *.hpp'  // Pipeline will fail if cpplint exits with 1
+            }
+        }
         stage('Extract & Setup on Windows VM') {
             steps {
                 sshagent(['windowsvm-key']) {
@@ -90,12 +95,6 @@ pipeline {
                 }
             }
         }
-        stage('Linting...') {
-            steps {
-                sh 'cpplint *.cpp *.hpp'  // Pipeline will fail if cpplint exits with 1
-            }
-        }
-
         stage("Copy Artifacts to Jenkins") {
             steps {
                 sshagent(['windowsvm-key']) {
