@@ -90,6 +90,11 @@ pipeline {
                 }
             }
         }
+        stage('Linting...') {
+            steps {
+                sh 'cpplint *.cpp *.hpp'  // Pipeline will fail if cpplint exits with 1
+            }
+        }
 
         stage("Copy Artifacts to Jenkins") {
             steps {
