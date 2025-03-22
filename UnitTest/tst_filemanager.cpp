@@ -163,17 +163,17 @@ void FileManagerTest::testAddFileToList() {
     qDebug("testAddFileToList adding first file test.");
 
     // create test files to ensure its added correctly
-    fs::path fPath = "TestFiles/testfile1.txt";
+    fs::path fPath = fs::current_path() / "TestFiles/testfile1.txt";
     FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
                   fs::file_size(fPath), testManager.HashFile("TestFiles/testfile1.txt"),
                   QDateTime::currentDateTime());
 
-    fs::path fPathDupe = "TestFiles/testfile3.txt";
+    fs::path fPathDupe = fs::current_path() / "TestFiles/testfile3.txt";
     FileInfo fileDupe(fPathDupe, QString::fromStdString(fPathDupe.extension().string()),
                   fs::file_size(fPathDupe), testManager.HashFile("TestFiles/testfile3.txt"),
                   QDateTime::currentDateTime());
 
-    fs::path fPathDiff = "TestFiles/testfile2.txt";
+    fs::path fPathDiff = fs::current_path() / "TestFiles/testfile2.txt";
     FileInfo fileDiff(fPathDiff, QString::fromStdString(fPathDiff.extension().string()),
                       fs::file_size(fPathDiff), testManager.HashFile("TestFiles/testfile2.txt"),
                       QDateTime::currentDateTime());
