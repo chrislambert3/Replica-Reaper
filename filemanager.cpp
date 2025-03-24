@@ -7,7 +7,7 @@
 #include <QApplication>
 #include <QStyle>
 #include <list>
-#include <qmenu.h>
+#include <QMenu>
 #include "filemanager.hpp"
 #include "mainwindow.hpp"
 #include "FileInfo.hpp"
