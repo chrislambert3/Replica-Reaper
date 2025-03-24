@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -141,6 +144,19 @@
      <string>Select File for Cross Ref.</string>
     </property>
    </widget>
+   <widget class="QCheckBox" name="checkBox">
+    <property name="geometry">
+     <rect>
+      <x>540</x>
+      <y>50</y>
+      <width>161</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Run in Background?</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -148,7 +164,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>17</height>
+     <height>25</height>
     </rect>
    </property>
   </widget>

@@ -19,6 +19,7 @@ class MainWindow : public QMainWindow {
     explicit MainWindow(QWidget *parent = nullptr);
     void onPushButtonClicked();
     void ShowDupesInUI(const FileManager& f);
+    void closeEvent(QCloseEvent *event);
     ~MainWindow();
 
  private:

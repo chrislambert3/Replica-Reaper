@@ -7,17 +7,28 @@
 #include <QApplication>
 #include <QStyle>
 #include <list>
+#include <qmenu.h>
 #include "filemanager.hpp"
 #include "mainwindow.hpp"
 #include "FileInfo.hpp"
 
 FileManager::FileManager(QObject* parent)
     : QObject(parent)
-    , trayIcon(new QSystemTrayIcon()) {
+    , trayIcon(new QSystemTrayIcon())
+    , ui(nullptr){
+    // can also set our custon icon like this:
+    // trayIcon->setIcon(QIcon(":/icon.png")); // Set an icon (optional, ensure the path is correct
     // sets a standard tray icon for now
     this->trayIcon->setIcon(QApplication::style()->standardIcon(QStyle::SP_MessageBoxInformation));
-    // can also set our custon icon like this
-    // trayIcon->setIcon(QIcon(":/icon.png")); // Set an icon (optional, ensure the path is correct)
+    quitAction = new QAction("Exit Replica Reaper", this);
+    // map the action to close the full application, (qApp is a universal pointer to the running application)
+    connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
+    // add a trayicon menu with the quit button/action
+    QMenu *trayMenu = new QMenu();
+    trayMenu->addAction(quitAction);
+    trayIcon->setContextMenu(trayMenu);
+    // map the user clicking the tray icon to a function reopening the UI
+    connect(trayIcon, &QSystemTrayIcon::activated, this, &FileManager::onTrayIconActivated);
     this->trayIcon->show();
 }
 FileManager::~FileManager() {}
@@ -111,5 +122,22 @@ void FileManager::ShowNotification(const QString& title, const QString& message)
 
 void FileManager::AddToDupes(const FileInfo& File) {
     return;
+}
+// this function activates when the system tray icon is clicked
+void FileManager::onTrayIconActivated(QSystemTrayIcon::ActivationReason reason) {
+    // if the icon is clicked and the ui exists
+    if (reason == QSystemTrayIcon::Trigger && ui) {
+        // If the main window is hidden or minimized, show it
+        if (ui->isHidden()) {
+            ui->show();         // Show the window if hidden
+            ui->raise();        // Bring the window to the front
+            ui->activateWindow(); // Give the window focus
+        }
+
+    }
+}
+// allows access to show and hide the UI
+void FileManager::setMainWindow(QMainWindow *ui) {
+    this->ui = ui;
 }
 

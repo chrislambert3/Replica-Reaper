@@ -1,4 +1,5 @@
 // Copyright 2025 Replica Reaper
+#include <QCloseEvent>
 #include <QString>
 #include <QListWidget>
 #include <QDateTime>
@@ -17,14 +18,30 @@ MainWindow::MainWindow(QWidget *parent)
     , manager(new FileManager()) {
     ui->setupUi(this);
     ui->progressBar->setValue(0);
+    manager->setMainWindow(this);
+    // set the "Run in background" checkbox to true
+    ui->checkBox->setChecked(true);
     // this links the button on the UI to the event function
     // "RunReaperBTN" is the name of the variable on the ui
     connect(ui->RunReaperBTN, &QPushButton::clicked, this, &MainWindow::onPushButtonClicked);
+
 }
 
 MainWindow::~MainWindow() {
     delete ui;
     delete manager;
+}
+
+// Overloaded function that automatically gets called when user closes UI
+void MainWindow::closeEvent(QCloseEvent *event) {
+    // if the "Run in Background" button is checked,
+    if(ui->checkBox->isChecked()){
+        // If checked, just close the window (keeps running in bacnground)
+        event->accept();  // Accept the event, which will close the window
+    }else{
+        qApp->quit();  // Close the full application
+        event->accept();
+    }
 }
 
 void MainWindow::onPushButtonClicked() {

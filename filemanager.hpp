@@ -6,6 +6,7 @@
 #include <QWidget>
 #include <QObject>
 #include <QSystemTrayIcon>
+#include <QMainWindow>
 #include <unordered_map>
 #include <iostream>
 #include <list>
@@ -25,6 +26,8 @@ class FileManager : public QObject {
     void ShowNotification(const QString& title, const QString& message);
     void addFileToList(const FileInfo& file);
     void CheckAndAddDupes(const std::list<FileInfo>& list, const FileInfo& file);
+    void setMainWindow(QMainWindow *ui);
+    void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
     ~FileManager();
 
     friend std::ostream& operator<<(std::ostream& out,
@@ -34,6 +37,9 @@ class FileManager : public QObject {
 
  private:
     QSystemTrayIcon* trayIcon;
+    QAction* quitAction;
+    QMenu* trayMenu;
+    QMainWindow* ui;
     // Map filtered by file type and then file size
     // unordered_map<QString, unordered_map<uintmax_t, std::list<FileInfo>>> AllFilesByTypeSize;
     // Holds list of list of duplicates
