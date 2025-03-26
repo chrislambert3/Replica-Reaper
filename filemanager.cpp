@@ -1,7 +1,7 @@
 // Copyright 2025 Replica Reaper
 #include "filemanager.hpp"
 #include "mainwindow.hpp"
-#include <QDirIterator>
+
 
 FileManager::FileManager(QObject* parent)
     : QObject(parent), trayIcon(new QSystemTrayIcon()), ui(nullptr) {
@@ -62,7 +62,8 @@ QStringList FileManager::ListFiles(const QString& directoryPath) {
     }
 
     QStringList fullPaths;
-    QDirIterator it(directoryPath, QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+    QDirIterator it(directoryPath, QDir::Files | QDir::NoDotAndDotDot,
+                    QDirIterator::Subdirectories);
 
     while (it.hasNext()) {
         fullPaths.append(it.next());

@@ -13,6 +13,7 @@
 #include <QApplication>
 #include <QStyle>
 #include <QMenu>
+#include <QDirIterator>
 #include <unordered_map>
 #include <iostream>
 #include <list>
