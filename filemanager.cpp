@@ -1,6 +1,7 @@
 // Copyright 2025 Replica Reaper
 #include "filemanager.hpp"
 #include "mainwindow.hpp"
+#include <QDirIterator>
 
 FileManager::FileManager(QObject* parent)
     : QObject(parent), trayIcon(new QSystemTrayIcon()), ui(nullptr) {
@@ -54,21 +55,21 @@ QByteArray FileManager::HashFile(QString fileName) {
 }
 
 QStringList FileManager::ListFiles(const QString& directoryPath) {
-  QDir dir(directoryPath);
-  if (!dir.exists()) {
-    qWarning() << "Directory does not exist:" << directoryPath;
-    return QStringList();
-  }
+    QDir dir(directoryPath);
+    if (!dir.exists()) {
+        qWarning() << "Directory does not exist:" << directoryPath;
+        return QStringList();
+    }
 
-  QStringList fileList =
-      dir.entryList(QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
-  QStringList fullPaths;
-  for (int i = 0; i < fileList.size(); ++i) {
-    fullPaths.append(dir.absoluteFilePath(fileList[i]));
-  }
+    QStringList fullPaths;
+    QDirIterator it(directoryPath, QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
 
-  qDebug() << "Files in directory:" << fullPaths;
-  return fullPaths;
+    while (it.hasNext()) {
+        fullPaths.append(it.next());
+    }
+
+    qDebug() << "Files in directory (recursive):" << fullPaths;
+    return fullPaths;
 }
 
 void FileManager::addFileToList(FileInfo& file) {
