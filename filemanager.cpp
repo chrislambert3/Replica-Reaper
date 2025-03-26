@@ -1,16 +1,6 @@
 // Copyright 2025 Replica Reaper
-#include <QString>
-#include <QFileDialog>
-#include <QCryptographicHash>
-#include <QFile>
-#include <QSystemTrayIcon>
-#include <QApplication>
-#include <QStyle>
-#include <QMenu>
-#include <list>
 #include "filemanager.hpp"
 #include "mainwindow.hpp"
-#include "FileInfo.hpp"
 
 FileManager::FileManager(QObject* parent)
     : QObject(parent), trayIcon(new QSystemTrayIcon()), ui(nullptr) {
@@ -81,7 +71,7 @@ QStringList FileManager::ListFiles(const QString& directoryPath) {
   return fullPaths;
 }
 
-void FileManager::addFileToList(const FileInfo& file) {
+void FileManager::addFileToList(FileInfo& file) {
   auto& sizeMap = AllFilesByTypeSize[file.getFileType()];
   auto& fileList = sizeMap[file.getFileSize()];
 
@@ -91,11 +81,28 @@ void FileManager::addFileToList(const FileInfo& file) {
   if (fileList.size() > 1) CheckAndAddDupes(fileList, file);
 }
 
-void FileManager::CheckAndAddDupes(const std::list<FileInfo>& list,
-                                   const FileInfo& file) {
-  // check hashes and confirm filepaths not same
-  // stub
-  return;
+void FileManager::CheckAndAddDupes(std::list<FileInfo>& list,
+                                   FileInfo& file) {
+    // make sure each file in list has a hash
+    for (auto& f : list) {
+        if (f.getHash() == DEAD_HASH)
+            f.setHash(HashFile(QString::fromStdString((f.getFilePath().string()))));
+    }
+
+    // hash file
+    file.setHash(HashFile(QString::fromStdString((file.getFilePath().string()))));
+    std::list<FileInfo> dList = {file};
+    // check hashes and confirm filepaths not same
+    for (auto& f : list) {
+        if (f.getHash() == file.getHash()) {
+            // add to dupes
+            dList.push_back(f);
+            qDebug() << "Hash verified." << file.getFilePath().string()
+                     << "HASH: " << file.getHash();
+        }
+    }
+    Dupes[file.getHash()] = dList;
+    return;
 }
 
 std::ostream& operator<<(std::ostream& out, const FileManager& f) {
