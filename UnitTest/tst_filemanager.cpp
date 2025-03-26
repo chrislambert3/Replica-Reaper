@@ -38,8 +38,7 @@ class FileManagerTest : public QObject {
   void myFirstTest();   // sample test with conditionals
   void mySecondTest();  // another sample
 
-  void
-  testListFilesFail();  // test invalid directory returns empty QStringList()
+  void testListFilesFail();  // test invalid directory returns empty QStringList()
   void testAddFileToList();
 
   // cleanupTestCase() will be called after the last test function was executed.

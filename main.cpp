@@ -1,5 +1,4 @@
 // Copyright 2025 Replica Reaper
-#include <QApplication>
 #include "mainwindow.hpp"
 
 int main(int argc, char *argv[]) {

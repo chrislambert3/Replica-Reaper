@@ -1,15 +1,6 @@
 // Copyright 2025 Replica Reaper
-#include <QCloseEvent>
-#include <QString>
-#include <QListWidget>
-#include <QDateTime>
-#include <filesystem>
-#include <iostream>
-#include <string>
-#include "FileInfo.hpp"
 #include "mainwindow.hpp"
 #include "./ui_mainwindow.h"
-#include "filemanager.hpp"
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), manager(new FileManager()) {
@@ -55,20 +46,17 @@ void MainWindow::onPushButtonClicked() {
   // Set a timer for hashing all files
   QElapsedTimer timer;
   timer.start();
+
   // Loop through each file and hash it (prints to console for now)
   for (int i = 0; i < filePaths.size(); ++i) {
     // setup for FileInfo class
-    // QString file = filePaths[i];
-    QByteArray hash = manager->HashFile(filePaths[i]);
     fs::path fPath = filePaths[i].toStdString();
     QDateTime currentDateTime = QDateTime::currentDateTime();
     FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
-                  fs::file_size(fPath), hash, currentDateTime);
+                  fs::file_size(fPath), currentDateTime);
     // Push and sort FileInfo class into FileManager class
     manager->addFileToList(file);
-    std::cout << *manager;  // DEBUG *************
-
-    qDebug() << "File: " << filePaths[i] << "\nHash: " << hash;
+    // std::cout << *manager;  // DEBUG *************
 
     // Update progress bar
     ui->progressBar->setValue(i + 1);
@@ -76,6 +64,9 @@ void MainWindow::onPushButtonClicked() {
     // Process events to keep UI responsive (for progress bar)
     QCoreApplication::processEvents();
   }
+
+  // std::cout << *manager;  // DEBUG *************
+
   // returns elapsed time in milliseconds ( /1000 for seconds)
   auto elapsedTime = timer.elapsed();
   QString message =
@@ -102,21 +93,12 @@ void MainWindow::ShowDupesInUI(const FileManager& f) {
         } else {
           std::cout << "am i in case 2********\n";
           QString out = QString::fromStdString(file.getFilePath().string());
-          // std::cout << file.getFilePathFuckQstring();
           out.append("     ");
           ui->listWidget->addItem(out);
         }
       }
     }
   }
-  /*
 
-
-      QDateTime currentDateTime = QDateTime::currentDateTime();
-      QString ItemToAdd = FilePath;
-      ItemToAdd.append("     ");
-      ItemToAdd.append(currentDateTime.toString());
-      ui->listWidget->addItem(ItemToAdd);
-  */
   return;
 }

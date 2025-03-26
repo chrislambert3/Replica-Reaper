@@ -7,9 +7,16 @@
 #include <QObject>
 #include <QSystemTrayIcon>
 #include <QMainWindow>
+#include <QFileDialog>
+#include <QCryptographicHash>
+#include <QFile>
+#include <QApplication>
+#include <QStyle>
+#include <QMenu>
 #include <unordered_map>
 #include <iostream>
 #include <list>
+#include <string>
 #include "FileInfo.hpp"
 
 using std::unordered_map;
@@ -24,8 +31,8 @@ class FileManager : public QObject {
     QStringList ListFiles(const QString& directoryPath);
     void AddToDupes(const FileInfo& File);
     void ShowNotification(const QString& title, const QString& message);
-    void addFileToList(const FileInfo& file);
-    void CheckAndAddDupes(const std::list<FileInfo>& list, const FileInfo& file);
+    void addFileToList(FileInfo& file);
+    void CheckAndAddDupes(std::list<FileInfo>& list, FileInfo& file);
     void setMainWindow(QMainWindow *ui);
     void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
     ~FileManager();

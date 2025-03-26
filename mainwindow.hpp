@@ -4,7 +4,16 @@
 #define MAINWINDOW_HPP
 
 #include <QMainWindow>
+#include <QCloseEvent>
+#include <QString>
+#include <QListWidget>
+#include <QDateTime>
+#include <QApplication>
+#include <filesystem>
+#include <iostream>
+#include <string>
 #include "filemanager.hpp"
+#include "FileInfo.hpp"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
