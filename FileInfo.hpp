@@ -22,6 +22,16 @@ class FileInfo{
             _FileSize(FileSize),
             _Hash(DEAD_HASH),
             _DateFound(DateFound) {}
+    FileInfo(const fs::path& FilePath,
+             const QString& FileType,
+             const uintmax_t FileSize,
+             const QByteArray& Hash,
+             const QDateTime& DateFound):
+        _FilePath(FilePath),
+        _FileType(FileType),
+        _FileSize(FileSize),
+        _Hash(Hash),
+        _DateFound(DateFound) {}
     const fs::path& getFilePath() const { return _FilePath; }
     QByteArray getHash() { return _Hash; }
     const QDateTime& getDate() const { return _DateFound; }
