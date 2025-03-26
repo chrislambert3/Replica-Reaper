@@ -2,7 +2,6 @@
 #include "filemanager.hpp"
 #include "mainwindow.hpp"
 
-
 FileManager::FileManager(QObject* parent)
     : QObject(parent), trayIcon(new QSystemTrayIcon()), ui(nullptr) {
   // can also set our custon icon like this:
@@ -55,22 +54,22 @@ QByteArray FileManager::HashFile(QString fileName) {
 }
 
 QStringList FileManager::ListFiles(const QString& directoryPath) {
-    QDir dir(directoryPath);
-    if (!dir.exists()) {
-        qWarning() << "Directory does not exist:" << directoryPath;
-        return QStringList();
-    }
+  QDir dir(directoryPath);
+  if (!dir.exists()) {
+    qWarning() << "Directory does not exist:" << directoryPath;
+    return QStringList();
+  }
 
-    QStringList fullPaths;
-    QDirIterator it(directoryPath, QDir::Files | QDir::NoDotAndDotDot,
-                    QDirIterator::Subdirectories);
+  QStringList fullPaths;
+  QDirIterator it(directoryPath, QDir::Files | QDir::NoDotAndDotDot,
+                  QDirIterator::Subdirectories);
 
-    while (it.hasNext()) {
-        fullPaths.append(it.next());
-    }
+  while (it.hasNext()) {
+    fullPaths.append(it.next());
+  }
 
-    qDebug() << "Files in directory (recursive):" << fullPaths;
-    return fullPaths;
+  qDebug() << "Files in directory (recursive):" << fullPaths;
+  return fullPaths;
 }
 
 void FileManager::addFileToList(FileInfo& file) {
@@ -83,28 +82,27 @@ void FileManager::addFileToList(FileInfo& file) {
   if (fileList.size() > 1) CheckAndAddDupes(fileList, file);
 }
 
-void FileManager::CheckAndAddDupes(std::list<FileInfo>& list,
-                                   FileInfo& file) {
-    // make sure each file in list has a hash
-    for (auto& f : list) {
-        if (f.getHash() == DEAD_HASH)
-            f.setHash(HashFile(QString::fromStdString((f.getFilePath().string()))));
-    }
+void FileManager::CheckAndAddDupes(std::list<FileInfo>& list, FileInfo& file) {
+  // make sure each file in list has a hash
+  for (auto& f : list) {
+    if (f.getHash() == DEAD_HASH)
+      f.setHash(HashFile(QString::fromStdString((f.getFilePath().string()))));
+  }
 
-    // hash file
-    file.setHash(HashFile(QString::fromStdString((file.getFilePath().string()))));
-    std::list<FileInfo> dList = {file};
-    // check hashes and confirm filepaths not same
-    for (auto& f : list) {
-        if (f.getHash() == file.getHash()) {
-            // add to dupes
-            dList.push_back(f);
-            qDebug() << "Hash verified." << file.getFilePath().string()
-                     << "HASH: " << file.getHash();
-        }
+  // hash file
+  file.setHash(HashFile(QString::fromStdString((file.getFilePath().string()))));
+  std::list<FileInfo> dList = {file};
+  // check hashes and confirm filepaths not same
+  for (auto& f : list) {
+    if (f.getHash() == file.getHash()) {
+      // add to dupes
+      dList.push_back(f);
+      qDebug() << "Hash verified." << file.getFilePath().string()
+               << "HASH: " << file.getHash();
     }
-    Dupes[file.getHash()] = dList;
-    return;
+  }
+  Dupes[file.getHash()] = dList;
+  return;
 }
 
 std::ostream& operator<<(std::ostream& out, const FileManager& f) {

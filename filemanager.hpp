@@ -42,6 +42,7 @@ class FileManager : public QObject {
                 const FileManager& f);
 
     unordered_map<QString, unordered_map<uintmax_t, std::list<FileInfo>>> AllFilesByTypeSize;
+    unordered_map<QByteArray, std::list<FileInfo>> Dupes;
 
  private:
     QSystemTrayIcon* trayIcon;
@@ -52,7 +53,6 @@ class FileManager : public QObject {
     // unordered_map<QString, unordered_map<uintmax_t, std::list<FileInfo>>> AllFilesByTypeSize;
     // Holds list of list of duplicates
     // no particular order
-    unordered_map<QByteArray, std::list<FileInfo>> Dupes;
 };
 
 #endif /* FILEMANAGER_HPP */
