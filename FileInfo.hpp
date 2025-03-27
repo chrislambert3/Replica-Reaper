@@ -42,6 +42,7 @@ class FileInfo{
 
     friend bool operator<(const FileInfo& a, const FileInfo& b) { return a._Hash < b._Hash; }
     friend bool operator==(const FileInfo& a, const FileInfo& b) { return a._Hash == b._Hash; }
+
  private:
     fs::path _FilePath;
     QString _FileType;

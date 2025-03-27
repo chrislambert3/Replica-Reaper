@@ -68,13 +68,13 @@ QStringList FileManager::ListFiles(const QString& directoryPath) {
     fullPaths.append(it.next());
   }
 
-  //qDebug() << "Files in directory (recursive):" << fullPaths;
+  // qDebug() << "Files in directory (recursive):" << fullPaths;
   return fullPaths;
 }
 
 void FileManager::addFileToList(FileInfo& file) {
-  auto& sizeMap = AllFilesByTypeSize[file.getFileType()]; // list of same size file types
-  auto& fileList = sizeMap[file.getFileSize()]; // list of same-sized file infos
+  auto& sizeMap = AllFilesByTypeSize[file.getFileType()];  // list of same size file types
+  auto& fileList = sizeMap[file.getFileSize()];  // list of same-sized file infos
 
   fileList.push_back(file);
 
@@ -93,32 +93,32 @@ void FileManager::CheckAndAddDupes(std::list<FileInfo>& list, FileInfo& file) {
 
     // List to hold duplicates
     std::list<QByteArray> HashList;
-    //find and store all unique hashes
+    // find and store all unique hashes
     for (auto& fileInfo : list) {
         QByteArray currentHash = fileInfo.getHash();
-        //is hash already in hashList?
+        // is hash already in hashList?
         auto it = std::find(HashList.begin(), HashList.end(), currentHash);
         if (it == HashList.end()) {
             HashList.push_back(currentHash);
-            //qDebug() << currentHash;
+            // qDebug() << currentHash;
         }
     }
 
-    //runs through the list and pushes all elements of list
-    //matching hash to dlist. If dlist is > 1 then it is pushed
-    //to dupe
-    for(auto& a : HashList){
+    // runs through the list and pushes all elements of list
+    // matching hash to dlist. If dlist is > 1 then it is pushed
+    // to dupe
+    for (auto& a : HashList) {
         std::list<FileInfo> dList;
-        for(auto& b : list){
-            if(a == b.getHash()){
+        for (auto& b : list) {
+            if (a == b.getHash()) {
                 dList.push_back(b);
             }
         }
-        if(dList.size() > 1){
+
+        if (dList.size() > 1) {
             Dupes[dList.begin()->getHash()] = {dList};
         }
     }
-
 }
 
 std::ostream& operator<<(std::ostream& out, const FileManager& f) {
