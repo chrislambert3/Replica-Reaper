@@ -18,6 +18,7 @@
 #include <iostream>
 #include <list>
 #include <string>
+#include <algorithm>
 #include "FileInfo.hpp"
 
 using std::unordered_map;
