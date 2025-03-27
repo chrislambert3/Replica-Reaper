@@ -34,9 +34,12 @@ class FileManager : public QObject {
     void AddToDupes(const FileInfo& File);
     void ShowNotification(const QString& title, const QString& message);
     void addFileToList(FileInfo& file);
-    void CheckAndAddDupes(std::list<FileInfo>& list, FileInfo& file);
+    void CheckAndAddDupes(std::list<FileInfo>& list);
     void setMainWindow(QMainWindow *ui);
     void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
+    std::list<QByteArray> StoreUniqueHashes(std::list<FileInfo>& list);
+    void AddDupesToMap(std::list<FileInfo>& list, const std::list<QByteArray>& HashList);
+    void UpdateHashes(std::list<FileInfo>& list);
     ~FileManager();
 
     friend std::ostream& operator<<(std::ostream& out,

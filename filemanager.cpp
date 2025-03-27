@@ -79,35 +79,47 @@ void FileManager::addFileToList(FileInfo& file) {
   fileList.push_back(file);
 
   // Check for duplicates (if list has more than one file now)
-  if (fileList.size() > 1) CheckAndAddDupes(fileList, file);
+  if (fileList.size() > 1) CheckAndAddDupes(fileList);
 }
 
-void FileManager::CheckAndAddDupes(std::list<FileInfo>& list, FileInfo& file) {
+void FileManager::CheckAndAddDupes(std::list<FileInfo>& list) {
     // Ensure each file in the list has a valid hash
-    for (auto& f : list) {
-        if (f.getHash() == DEAD_HASH)
-            f.setHash(HashFile(QString::fromStdString(f.getFilePath().string())));
-    }
+    UpdateHashes(list);
 
     list.sort();
 
-    // List to hold duplicates
-    std::list<QByteArray> HashList;
-    // find and store all unique hashes
-    for (auto& fileInfo : list) {
-        QByteArray currentHash = fileInfo.getHash();
-        // is hash already in hashList?
-        auto it = std::find(HashList.begin(), HashList.end(), currentHash);
-        if (it == HashList.end()) {
-            HashList.push_back(currentHash);
-            // qDebug() << currentHash;
-        }
-    }
+    std::list<QByteArray> HashList = StoreUniqueHashes(list);
 
     // runs through the list and pushes all elements of list
     // matching hash to dlist. If dlist is > 1 then it is pushed
     // to dupe
-    for (auto& a : HashList) {
+    AddDupesToMap(list, HashList);
+}
+
+void FileManager::UpdateHashes(std::list<FileInfo>& list) {
+    for (auto& f : list) {
+        if (f.getHash() == DEAD_HASH)
+            f.setHash(HashFile(QString::fromStdString(f.getFilePath().string())));
+    }
+}
+
+std::list<QByteArray> FileManager::StoreUniqueHashes(std::list<FileInfo>& list) {
+    // List to hold duplicates
+    std::list<QByteArray> uniqueHashes;
+    // find and store all unique hashes
+    for (auto& fileInfo : list) {
+        QByteArray currentHash = fileInfo.getHash();
+        // is hash already in hashList?
+        auto it = std::find(uniqueHashes.begin(), uniqueHashes.end(), currentHash);
+        if (it == uniqueHashes.end()) {
+            uniqueHashes.push_back(currentHash);
+        }
+    }
+    return uniqueHashes;
+}
+
+void FileManager::AddDupesToMap(std::list<FileInfo>& list, const std::list<QByteArray>& HashList) {
+    for (const auto& a : HashList) {
         std::list<FileInfo> dList;
         for (auto& b : list) {
             if (a == b.getHash()) {
