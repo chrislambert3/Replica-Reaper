@@ -40,6 +40,8 @@ class FileInfo{
 
     void setHash(const QByteArray& h) { _Hash = h; }
 
+    friend bool operator<(const FileInfo& a, const FileInfo& b) { return a._Hash < b._Hash; }
+    friend bool operator==(const FileInfo& a, const FileInfo& b) { return a._Hash == b._Hash; }
  private:
     fs::path _FilePath;
     QString _FileType;
@@ -47,5 +49,7 @@ class FileInfo{
     QByteArray _Hash;
     QDateTime _DateFound;
 };
+
+
 
 #endif /* FILEINFO_HPP */

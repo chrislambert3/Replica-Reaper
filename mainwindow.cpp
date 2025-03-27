@@ -55,7 +55,7 @@ void MainWindow::onPushButtonClicked() {
     FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
                   fs::file_size(fPath), currentDateTime);
     // Push and sort FileInfo class into FileManager class
-    manager->addFileToList(file);
+    manager->addFileToList(file); // passes in fileinfo
     // std::cout << *manager;  // DEBUG *************
 
     // Update progress bar

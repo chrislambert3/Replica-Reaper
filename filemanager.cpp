@@ -73,8 +73,8 @@ QStringList FileManager::ListFiles(const QString& directoryPath) {
 }
 
 void FileManager::addFileToList(FileInfo& file) {
-  auto& sizeMap = AllFilesByTypeSize[file.getFileType()];
-  auto& fileList = sizeMap[file.getFileSize()];
+  auto& sizeMap = AllFilesByTypeSize[file.getFileType()]; // list of same size file types
+  auto& fileList = sizeMap[file.getFileSize()]; // list of same-sized file infos
 
   fileList.push_back(file);
 
@@ -83,26 +83,50 @@ void FileManager::addFileToList(FileInfo& file) {
 }
 
 void FileManager::CheckAndAddDupes(std::list<FileInfo>& list, FileInfo& file) {
-  // make sure each file in list has a hash
-  for (auto& f : list) {
-    if (f.getHash() == DEAD_HASH)
-      f.setHash(HashFile(QString::fromStdString((f.getFilePath().string()))));
-  }
-
-  // hash file
-  file.setHash(HashFile(QString::fromStdString((file.getFilePath().string()))));
-  std::list<FileInfo> dList = {file};
-  // check hashes and confirm filepaths not same
-  for (auto& f : list) {
-    if (f.getHash() == file.getHash()) {
-      // add to dupes
-      dList.push_back(f);
-      qDebug() << "Hash verified." << file.getFilePath().string()
-               << "HASH: " << file.getHash();
+    // Ensure each file in the list has a valid hash
+    for (auto& f : list) {
+        if (f.getHash() == DEAD_HASH)
+            f.setHash(HashFile(QString::fromStdString(f.getFilePath().string())));
     }
-  }
-  Dupes[file.getHash()] = dList;
-  return;
+
+    // Sort the list based on hash values
+    list.sort();
+
+    // List to hold duplicates
+    std::list<FileInfo> dList;
+
+    // Iterator-based traversal
+    auto it = list.begin();
+    while (it != list.end()) {
+        auto next = std::next(it);
+        bool hasDuplicates = false;
+        std::list<FileInfo> tempGroup;
+
+        // Collect duplicates
+        while (next != list.end() && it->getHash() == next->getHash()) {
+            if (it->getFilePath() != next->getFilePath()) {
+                if (!hasDuplicates) {
+                    tempGroup.push_back(*it); // Store the first occurrence
+                    hasDuplicates = true;
+                }
+                tempGroup.push_back(*next);
+            }
+            ++next;
+        }
+
+        // If we found duplicates, add them to dList
+        if (hasDuplicates) {
+            dList.insert(dList.end(), tempGroup.begin(), tempGroup.end());
+        }
+
+        // Move iterator to next unique hash
+        it = next;
+    }
+
+    // Store duplicates in a map (assuming Dupes is defined in your class)
+    if (!dList.empty()) {
+        Dupes[file.getHash()] = dList;
+    }
 }
 
 std::ostream& operator<<(std::ostream& out, const FileManager& f) {
