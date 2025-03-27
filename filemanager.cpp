@@ -29,6 +29,12 @@ QString FileManager::PromptDirectory(QWidget* parent) {
   QString filePath = QFileDialog::getExistingDirectory(
       parent, "Open a Directory", QDir::homePath(),
       QFileDialog::DontResolveSymlinks);
+
+    if (filePath.isEmpty()) {
+      qDebug() << "No directory selected";
+        return QString();
+    }
+
   qDebug() << "Selected File Path: " << filePath;
   return filePath;
 }
