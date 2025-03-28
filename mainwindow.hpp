@@ -9,6 +9,7 @@
 #include <QListWidget>
 #include <QDateTime>
 #include <QApplication>
+#include <QTreeWidget>
 #include <filesystem>
 #include <iostream>
 #include <string>
@@ -28,6 +29,10 @@ class MainWindow : public QMainWindow {
     explicit MainWindow(QWidget *parent = nullptr);
     void onPushButtonClicked();
     void ShowDupesInUI(const FileManager& f);
+    void onTreeItemChanged(QTreeWidgetItem *item);
+    void onDelSelBTN_clicked();
+    void onDelAllBTN_clicked();
+    void printCheckedItems();
     void closeEvent(QCloseEvent *event);
     ~MainWindow();
 

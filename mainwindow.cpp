@@ -9,10 +9,31 @@ MainWindow::MainWindow(QWidget* parent)
   manager->setMainWindow(this);
   // set the "Run in background" checkbox to true
   ui->checkBox->setChecked(true);
+
+  // Tree Widget config:
+  ui->treeWidget->setColumnCount(2); // Single column for file names (Poss another col for Date Modified)
+  ui->treeWidget->setHeaderLabels({"File Path", "Date Modified"}); // tree columns
+  ui->treeWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+  ui->treeWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+  ui->treeWidget->header()->setSectionResizeMode(0,QHeaderView::ResizeToContents); // File path length fits conted
+  ui->treeWidget->header()->setSectionResizeMode(1, QHeaderView::ResizeToContents); // Date Modified fits content
+  // ui->treeWidget->setColumnWidth(0, 1000);
+  // ui->treeWidget->setMinimumWidth(1000);
+  // set specifation for the list tree
+  // ui->treeWidget->setColumnHidden(1,true);
+  // ui->treeWidget->setColumnWidth(2, 2); // Setting the second column to
+
+  // Button Connections:
   // this links the button on the UI to the event function
   // "RunReaperBTN" is the name of the variable on the ui
   connect(ui->RunReaperBTN, &QPushButton::clicked, this,
           &MainWindow::onPushButtonClicked);
+  // Connect signal to handle parent-child checkbox logic
+  connect(ui->treeWidget, &QTreeWidget::itemChanged, this, &MainWindow::onTreeItemChanged);
+  // Connect the "DelSelBTN" to the onDelSelBTN_clicked function
+  connect(ui->DelSelBTN, &QPushButton::clicked, this, &MainWindow::onDelSelBTN_clicked);
+  // Connect the "DelAllBTN" to the onDelAllBTN_clicked function
+  connect(ui->DelAllBTN, &QPushButton::clicked, this, &MainWindow::onDelAllBTN_clicked);
 }
 
 MainWindow::~MainWindow() {
@@ -40,7 +61,6 @@ void MainWindow::onPushButtonClicked() {
       qDebug("Please select a directory");
       return;
   }
-
   QStringList filePaths = manager->ListFiles(path);
 
   // Set up the progress bar
@@ -89,10 +109,119 @@ void MainWindow::onPushButtonClicked() {
 void MainWindow::ShowDupesInUI(const FileManager& f) {
   QString out;
   for (auto it = f.Dupes.begin(); it != f.Dupes.end(); ++it) {
+      // Dupes groups by {hash: list<fileinfo>}
+
+      // Get the key to the map (the hash)
+      QString hashGroup = QString(it->first);
+      // Make a parent item for the list tree widget
+      QTreeWidgetItem *parentHashItem = new QTreeWidgetItem(ui->treeWidget);
+      parentHashItem->setText(0, "Group: " + hashGroup);
+      parentHashItem->setText(1, "{Placeholder}"); // Next column value to go under Date Modified
+      parentHashItem->setCheckState(0, Qt::Unchecked); // Default unchecked
+      // add the parent item to tree
+      ui->treeWidget->addTopLevelItem(parentHashItem);
+
     for (auto& a : it->second) {
       out = QString::fromStdString(a.getFilePath().string());
-      out.append("     ");
-      ui->listWidget->addItem(out);
+    // Create a checkable item for out
+      QListWidgetItem *item = new QListWidgetItem(out);
+      item->setCheckState(Qt::Unchecked);
+      //out.append("     ");
+      ui->listWidget->addItem(item);
+
+      // Logic for adding to list Tree:
+      // make a a child for the parent hash item
+      QTreeWidgetItem *childItem = new QTreeWidgetItem(parentHashItem);
+      childItem->setText(0, out); // set the filepath
+      childItem->setText(1, QString("{Date Modified}")); // Next column value for child item
+      childItem->setCheckState(0, Qt::Unchecked);
     }
   }
+}
+
+// Function to manage parent-child checkbox behavior
+void MainWindow::onTreeItemChanged(QTreeWidgetItem *item) {
+    if (!item) return;
+    // Temporarily disconnect the signal to avoid recursion
+    // (because changing child checkstates in this function triggers it again)
+    disconnect(ui->treeWidget, &QTreeWidget::itemChanged, this, &MainWindow::onTreeItemChanged);
+
+    // If a parent item check (group header) is toggled,
+    if (item->parent() == nullptr) {
+        // Get the check status of the parent
+        Qt::CheckState newState = item->checkState(0);
+        // set all the childs states to match the parents
+        for (int i = 0; i < item->childCount(); ++i) {
+            item->child(i)->setCheckState(0, newState);
+        }
+    }
+    // If a child item is toggled
+    else {
+        QTreeWidgetItem *parent = item->parent();
+        bool allChecked = true, anyChecked = false;
+        // compare all the child elements to see if some, all, or none are checked
+        for (int i = 0; i < parent->childCount(); ++i) {
+            Qt::CheckState state = parent->child(i)->checkState(0);
+            if (state == Qt::Checked) anyChecked = true;
+            if (state != Qt::Checked) allChecked = false;
+        }
+
+        // Update parent state based on children
+        if (allChecked) {
+            parent->setCheckState(0, Qt::Checked);
+        } else if (anyChecked) {
+            parent->setCheckState(0, Qt::PartiallyChecked);
+        } else { // none are checked
+            parent->setCheckState(0, Qt::Unchecked);
+        }
+    }
+     // Reconnect the signal after the change is done
+    connect(ui->treeWidget, &QTreeWidget::itemChanged, this, &MainWindow::onTreeItemChanged);
+}
+
+void MainWindow::onDelSelBTN_clicked(){
+    // prints selected to console for now
+    printCheckedItems();
+}
+void MainWindow::onDelAllBTN_clicked(){
+    // currently selects all buttons
+
+    // Iterate through all top-level parent items
+    for (int i = 0; i < ui->treeWidget->topLevelItemCount(); ++i) {
+        QTreeWidgetItem *parentItem = ui->treeWidget->topLevelItem(i);
+
+        // Set the parent item to checked
+        parentItem->setCheckState(0, Qt::Checked);
+        // Child items should automatically check due to onTreeItemChanged()
+    }
+}
+void MainWindow::printCheckedItems() {
+    // iterate though the parent widgets
+    for (int i = 0; i < ui->treeWidget->topLevelItemCount(); ++i) {
+        QTreeWidgetItem *parentItem = ui->treeWidget->topLevelItem(i);
+
+        // Skip if the parent is unchecked (so no childs are checked)
+        if (parentItem->checkState(0) == Qt::Unchecked) {
+            continue;
+        }
+
+        // Check the state of the parent item
+        if (parentItem->checkState(0) == Qt::Checked) {
+            qDebug() << "Checked Parent Group:" << parentItem->text(0);
+        } else if (parentItem->checkState(0) == Qt::PartiallyChecked) {
+            qDebug() << "Partially Checked Parent Group:" << parentItem->text(0);
+        }
+
+        // iterate through child items of the checked parent
+        for (int j = 0; j < parentItem->childCount(); ++j) {
+            QTreeWidgetItem *childItem = parentItem->child(j);
+
+            // Skip if the child is unchecked (for partially checked cases)
+            if (childItem->checkState(0) == Qt::Unchecked) {
+                continue;
+            } else { // child is checked
+                qDebug() << "Checked Item:" << childItem->text(0);
+            }
+        }
+    }
 }
