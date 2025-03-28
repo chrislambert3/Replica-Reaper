@@ -13,6 +13,8 @@ MainWindow::MainWindow(QWidget* parent)
   // "RunReaperBTN" is the name of the variable on the ui
   connect(ui->RunReaperBTN, &QPushButton::clicked, this,
           &MainWindow::onPushButtonClicked);
+  connect(ui->DelAllBTN, &QPushButton::clicked, this,
+          &MainWindow::onPushButtonClicked);
 }
 
 MainWindow::~MainWindow() {
@@ -33,46 +35,61 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 }
 
 void MainWindow::onPushButtonClicked() {
-  qDebug() << "Button clicked!";
+    qDebug() << "Button clicked!";
+    QPushButton* btn = qobject_cast<QPushButton*>(sender());
 
-  QString path = manager->PromptDirectory(this);
-  QStringList filePaths = manager->ListFiles(path);
+    if (btn == ui->RunReaperBTN) {
+        ReaperButtonPress();
+    }
 
-  // Set up the progress bar
-  ui->progressBar->setValue(0);                   // sets it to 0
-  ui->progressBar->setMinimum(0);                 // Min value
-  ui->progressBar->setMaximum(filePaths.size());  // # of files to hash
+    if (btn == ui->DelAllBTN) {
+        DeleteButtonPress();
+    }
+}
 
-  // Set a timer for hashing all files
-  QElapsedTimer timer;
-  timer.start();
+void MainWindow::ReaperButtonPress() {
+    QString path = manager->PromptDirectory(this);
+    QStringList filePaths = manager->ListFiles(path);
 
-  // Loop through each file and hash it (prints to console for now)
-  for (int i = 0; i < filePaths.size(); ++i) {
-    // setup for FileInfo class
-    fs::path fPath = filePaths[i].toStdString();
-    QDateTime currentDateTime = QDateTime::currentDateTime();
-    FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
-                  fs::file_size(fPath), currentDateTime);
-    // Push and sort FileInfo class into FileManager class
-    manager->addFileToList(file);
+    // Set up the progress bar
+    ui->progressBar->setValue(0);                   // sets it to 0
+    ui->progressBar->setMinimum(0);                 // Min value
+    ui->progressBar->setMaximum(filePaths.size());  // # of files to hash
+
+    // Set a timer for hashing all files
+    QElapsedTimer timer;
+    timer.start();
+
+    // Loop through each file and hash it (prints to console for now)
+    for (int i = 0; i < filePaths.size(); ++i) {
+        // setup for FileInfo class
+        fs::path fPath = filePaths[i].toStdString();
+        QDateTime currentDateTime = QDateTime::currentDateTime();
+        FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
+                      fs::file_size(fPath), currentDateTime);
+        // Push and sort FileInfo class into FileManager class
+        manager->addFileToList(file);
+        // std::cout << *manager;  // DEBUG *************
+
+        // Update progress bar
+        ui->progressBar->setValue(i + 1);
+
+        // Process events to keep UI responsive (for progress bar)
+        QCoreApplication::processEvents();
+    }
+
     // std::cout << *manager;  // DEBUG *************
 
-    // Update progress bar
-    ui->progressBar->setValue(i + 1);
+    // returns elapsed time in milliseconds ( /1000 for seconds)
+    auto elapsedTime = timer.elapsed();
+    QString message =
+        "Took " + QString::number(elapsedTime / 1000.0, 'f') + " seconds";
+    manager->ShowNotification("Hashing Complete", message);
+    ShowDupesInUI(*manager);
+}
 
-    // Process events to keep UI responsive (for progress bar)
-    QCoreApplication::processEvents();
-  }
-
-  // std::cout << *manager;  // DEBUG *************
-
-  // returns elapsed time in milliseconds ( /1000 for seconds)
-  auto elapsedTime = timer.elapsed();
-  QString message =
-      "Took " + QString::number(elapsedTime / 1000.0, 'f') + " seconds";
-  manager->ShowNotification("Hashing Complete", message);
-  ShowDupesInUI(*manager);
+void MainWindow::DeleteButtonPress() {
+    qDebug("DELETE BUTTON PRESSED");
 }
 
 // adds one file to qlistwidget
