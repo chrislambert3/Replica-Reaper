@@ -60,7 +60,7 @@ void MainWindow::onPushButtonClicked() {
     FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
                   fs::file_size(fPath), currentDateTime);
     // Push and sort FileInfo class into FileManager class
-    manager->addFileToList(file);
+    manager->addFileToList(file);  // passes in fileinfo
     // std::cout << *manager;  // DEBUG *************
 
     // Update progress bar
@@ -87,23 +87,12 @@ void MainWindow::onPushButtonClicked() {
 // Does not currently locate items adjacently
 // NEED TO REFACTOR SO IT TAKES A FILEINFO
 void MainWindow::ShowDupesInUI(const FileManager& f) {
-  for (const auto& [fileType, MapSize] : f.AllFilesByTypeSize) {
-    // out << "File Type: " << fileType.toStdString() << "\n";
-    for (const auto& [fileSize, fileList] : MapSize) {
-      // out << "  Size: " << fileSize << " bytes\n";
-      for (const auto& file : fileList) {
-        if (fileList.size() <= 1) {
-          std::cout << "am i in case 1********\n";
-          continue;  // throw exception?
-        } else {
-          std::cout << "am i in case 2********\n";
-          QString out = QString::fromStdString(file.getFilePath().string());
-          out.append("     ");
-          ui->listWidget->addItem(out);
-        }
-      }
+  QString out;
+  for (auto it = f.Dupes.begin(); it != f.Dupes.end(); ++it) {
+    for (auto& a : it->second) {
+      out = QString::fromStdString(a.getFilePath().string());
+      out.append("     ");
+      ui->listWidget->addItem(out);
     }
   }
-
-  return;
 }

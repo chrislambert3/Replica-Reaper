@@ -18,6 +18,7 @@
 #include <iostream>
 #include <list>
 #include <string>
+#include <algorithm>
 #include "FileInfo.hpp"
 
 using std::unordered_map;
@@ -33,15 +34,19 @@ class FileManager : public QObject {
     void AddToDupes(const FileInfo& File);
     void ShowNotification(const QString& title, const QString& message);
     void addFileToList(FileInfo& file);
-    void CheckAndAddDupes(std::list<FileInfo>& list, FileInfo& file);
+    void CheckAndAddDupes(std::list<FileInfo>& list);
     void setMainWindow(QMainWindow *ui);
     void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
+    std::list<QByteArray> StoreUniqueHashes(std::list<FileInfo>& list);
+    void AddDupesToMap(std::list<FileInfo>& list, const std::list<QByteArray>& HashList);
+    void UpdateHashes(std::list<FileInfo>& list);
     ~FileManager();
 
     friend std::ostream& operator<<(std::ostream& out,
                 const FileManager& f);
 
     unordered_map<QString, unordered_map<uintmax_t, std::list<FileInfo>>> AllFilesByTypeSize;
+    unordered_map<QByteArray, std::list<FileInfo>> Dupes;
 
  private:
     QSystemTrayIcon* trayIcon;
@@ -52,7 +57,6 @@ class FileManager : public QObject {
     // unordered_map<QString, unordered_map<uintmax_t, std::list<FileInfo>>> AllFilesByTypeSize;
     // Holds list of list of duplicates
     // no particular order
-    unordered_map<QByteArray, std::list<FileInfo>> Dupes;
 };
 
 #endif /* FILEMANAGER_HPP */

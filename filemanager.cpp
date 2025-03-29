@@ -2,7 +2,6 @@
 #include "filemanager.hpp"
 #include "mainwindow.hpp"
 
-
 FileManager::FileManager(QObject* parent)
     : QObject(parent), trayIcon(new QSystemTrayIcon()), ui(nullptr) {
   // can also set our custon icon like this:
@@ -61,56 +60,83 @@ QByteArray FileManager::HashFile(QString fileName) {
 }
 
 QStringList FileManager::ListFiles(const QString& directoryPath) {
-    QDir dir(directoryPath);
-    if (!dir.exists()) {
-        qWarning() << "Directory does not exist:" << directoryPath;
-        return QStringList();
-    }
+  QDir dir(directoryPath);
+  if (!dir.exists()) {
+    qWarning() << "Directory does not exist:" << directoryPath;
+    return QStringList();
+  }
 
-    QStringList fullPaths;
-    QDirIterator it(directoryPath, QDir::Files | QDir::NoDotAndDotDot,
-                    QDirIterator::Subdirectories);
+  QStringList fullPaths;
+  QDirIterator it(directoryPath, QDir::Files | QDir::NoDotAndDotDot,
+                  QDirIterator::Subdirectories);
 
-    while (it.hasNext()) {
-        fullPaths.append(it.next());
-    }
+  while (it.hasNext()) {
+    fullPaths.append(it.next());
+  }
 
-    qDebug() << "Files in directory (recursive):" << fullPaths;
-    return fullPaths;
+  // qDebug() << "Files in directory (recursive):" << fullPaths;
+  return fullPaths;
 }
 
 void FileManager::addFileToList(FileInfo& file) {
-  auto& sizeMap = AllFilesByTypeSize[file.getFileType()];
-  auto& fileList = sizeMap[file.getFileSize()];
+  auto& sizeMap = AllFilesByTypeSize[file.getFileType()];  // list of same size file types
+  auto& fileList = sizeMap[file.getFileSize()];  // list of same-sized file infos
 
   fileList.push_back(file);
 
   // Check for duplicates (if list has more than one file now)
-  if (fileList.size() > 1) CheckAndAddDupes(fileList, file);
+  if (fileList.size() > 1) CheckAndAddDupes(fileList);
 }
 
-void FileManager::CheckAndAddDupes(std::list<FileInfo>& list,
-                                   FileInfo& file) {
-    // make sure each file in list has a hash
+void FileManager::CheckAndAddDupes(std::list<FileInfo>& list) {
+    // Ensure each file in the list has a valid hash
+    UpdateHashes(list);
+
+    list.sort();
+
+    std::list<QByteArray> HashList = StoreUniqueHashes(list);
+
+    // runs through the list and pushes all elements of list
+    // matching hash to dlist. If dlist is > 1 then it is pushed
+    // to dupe
+    AddDupesToMap(list, HashList);
+}
+
+void FileManager::UpdateHashes(std::list<FileInfo>& list) {
     for (auto& f : list) {
         if (f.getHash() == DEAD_HASH)
-            f.setHash(HashFile(QString::fromStdString((f.getFilePath().string()))));
+            f.setHash(HashFile(QString::fromStdString(f.getFilePath().string())));
     }
+}
 
-    // hash file
-    file.setHash(HashFile(QString::fromStdString((file.getFilePath().string()))));
-    std::list<FileInfo> dList = {file};
-    // check hashes and confirm filepaths not same
-    for (auto& f : list) {
-        if (f.getHash() == file.getHash()) {
-            // add to dupes
-            dList.push_back(f);
-            qDebug() << "Hash verified." << file.getFilePath().string()
-                     << "HASH: " << file.getHash();
+std::list<QByteArray> FileManager::StoreUniqueHashes(std::list<FileInfo>& list) {
+    // List to hold duplicates
+    std::list<QByteArray> uniqueHashes;
+    // find and store all unique hashes
+    for (auto& fileInfo : list) {
+        QByteArray currentHash = fileInfo.getHash();
+        // is hash already in hashList?
+        auto it = std::find(uniqueHashes.begin(), uniqueHashes.end(), currentHash);
+        if (it == uniqueHashes.end()) {
+            uniqueHashes.push_back(currentHash);
         }
     }
-    Dupes[file.getHash()] = dList;
-    return;
+    return uniqueHashes;
+}
+
+void FileManager::AddDupesToMap(std::list<FileInfo>& list, const std::list<QByteArray>& HashList) {
+    for (const auto& a : HashList) {
+        std::list<FileInfo> dList;
+        for (auto& b : list) {
+            if (a == b.getHash()) {
+                dList.push_back(b);
+            }
+        }
+
+        if (dList.size() > 1) {
+            Dupes[dList.begin()->getHash()] = {dList};
+        }
+    }
 }
 
 std::ostream& operator<<(std::ostream& out, const FileManager& f) {
