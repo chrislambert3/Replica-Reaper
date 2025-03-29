@@ -2,9 +2,14 @@
 #include <QCoreApplication>
 #include <QTest>
 #include <QTemporaryFile>
+#include <QProgressBar>
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
 #include <filesystem>
 #include <string>
 #include "../filemanager.hpp"
+#include "../FileInfo.hpp"
+#include "../mainwindow.hpp"
 // add necessary includes here
 
 /*
@@ -31,20 +36,29 @@ class FileManagerTest : public QObject {
   // <testnamefunction>_data() will be called to create a global test data
   // table. Ex. testHashFile_data() will get called inside testHashFile() before
   // anything
+  // File Manager Tests
   void testHashFile();
   void testHashFile_data();
   void testHashFile_FileNotFound();
-
-  void myFirstTest();   // sample test with conditionals
-  void mySecondTest();  // another sample
-
   void testListFilesFail();  // test invalid directory returns empty QStringList()
   void testAddFileToList();
 
+  // UI Components Tests:
+  void testProgressBarUpdate();
+  void testTreeWidgetHierarchy();
+  void testCheckingParentMarksAllChildren(); // Tree Widget test
+  void testUncheckingChildSetsParentPartial(); // Tree Widget test
+  void testUncheckingAllChildSetsParentUncheck(); // Tree Widget test
+
+  // FileInfo class Tests:
+  void testFileInfoConstruction_WithoutHash();
+  void testFileInfoConstruction_WithHash();
+  void testFileInfoGetters();
+  void testFileInfoSetHash();
+  void testFileInfoComparisonOperators();
+
   // cleanupTestCase() will be called after the last test function was executed.
   void cleanupTestCase();
-  // *****currently commented instructions to delete the 3 files from
-  // initTestCase()
 
  private:
   FileManager testManager;
@@ -54,7 +68,7 @@ FileManagerTest::FileManagerTest(QObject *parent) : QObject(parent) {}
 FileManagerTest::~FileManagerTest() {}
 
 void FileManagerTest::initTestCase() {  // will be called before the first test
-                                        // case is executed.
+
   qDebug("Called before everything else.");
   // Get the base path of the current application directory
   QString basePath = QCoreApplication::applicationDirPath();
@@ -142,28 +156,6 @@ void FileManagerTest::testHashFile_FileNotFound() {
   QByteArray result = testManager.HashFile("non_existent_file.txt");
   QVERIFY(result.isEmpty());
 }
-
-void FileManagerTest::myFirstTest() {
-  QVERIFY(true);   // check that a condition is satisfied
-  QCOMPARE(1, 1);  // compare two value
-}
-void FileManagerTest::mySecondTest() {
-  QVERIFY(true);
-  QVERIFY(1 != 2);  // check conditional
-  QCOMPARE(1, 1);   // comapare values
-
-  // Additional QCOMPARE examples
-  int a = 5;
-  int b = 5;
-  QCOMPARE(a, b);  // Passes if a == b
-
-  QString str1 = "Hello";
-  QString str2 = "Hello";
-  QCOMPARE(str1, str2);  // Passes if str1 == str2
-  // Additional QVERIFY example
-  QVERIFY(10 > 5);  // Passes if the condition is true
-}
-
 // Test to check invalid directory path returns a null list
 void FileManagerTest::testListFilesFail() {
   qDebug("testListFilesFail test.");
@@ -175,7 +167,6 @@ void FileManagerTest::testListFilesFail() {
   QStringList result = testManager.ListFiles("/path/to/invalid/directory");
   QCOMPARE(result.isEmpty(), true);
 }
-
 // Test to check files added to list
 void FileManagerTest::testAddFileToList() {
   qDebug("testAddFileToList adding first file test.");
@@ -237,18 +228,224 @@ void FileManagerTest::testAddFileToList() {
           .size() == 1);
   QVERIFY(file.getHash() != fileDiff.getHash());  // verify different hash
 }
+void FileManagerTest::testProgressBarUpdate() {
+    // Simulate setting progress bar values
+    QProgressBar progressBar;
+    QProgressBar* pointer = &progressBar;
 
+    QVERIFY(pointer != nullptr);
+
+    progressBar.setValue(0);
+    QCOMPARE(progressBar.value(), 0);
+
+    progressBar.setValue(50);
+    QCOMPARE(progressBar.value(), 50);
+
+    progressBar.setValue(100);
+    QCOMPARE(progressBar.value(), 100);
+}
+void FileManagerTest::testFileInfoConstruction_WithoutHash() {
+    fs::path fPath = "TestFiles/testfile1.txt";
+    QString fType = QString::fromStdString(fPath.extension().string());
+    uintmax_t fSize = fs::file_size(fPath);
+    QDateTime dateFound = QDateTime::currentDateTime();
+
+    FileInfo fileInfo(fPath, fType, fSize, dateFound);
+
+    QCOMPARE(fileInfo.getFilePath(), fPath);
+    QCOMPARE(fileInfo.getFileType(), fType);
+    QCOMPARE(fileInfo.getFileSize(), fSize);
+    QCOMPARE(fileInfo.getHash(), DEAD_HASH);
+    QCOMPARE(fileInfo.getDate(), dateFound);
+}
+void FileManagerTest::testFileInfoConstruction_WithHash() {
+    fs::path fPath = "TestFiles/testfile1.txt";
+    QString fType = QString::fromStdString(fPath.extension().string());
+    uintmax_t fSize = fs::file_size(fPath);
+    QByteArray hash = QByteArray::fromHex("1234567890abcdef");
+    QDateTime dateFound = QDateTime::currentDateTime();
+
+    FileInfo fileInfo(fPath, fType, fSize, hash, dateFound);
+
+    QCOMPARE(fileInfo.getFilePath(), fPath);
+    QCOMPARE(fileInfo.getFileType(), fType);
+    QCOMPARE(fileInfo.getFileSize(), fSize);
+    QVERIFY(fileInfo.getHash() != DEAD_HASH);
+    QCOMPARE(fileInfo.getHash(), hash);
+    QCOMPARE(fileInfo.getDate(), dateFound);
+}
+
+void FileManagerTest::testFileInfoGetters() {
+    fs::path fPath = "TestFiles/testfile1.txt";
+    QString fType = QString::fromStdString(fPath.extension().string());
+    uintmax_t fSize = fs::file_size(fPath);
+    QDateTime dateFound = QDateTime::currentDateTime();
+
+    FileInfo fileInfo(fPath, fType, fSize, dateFound);
+
+    QCOMPARE(fileInfo.getFilePath(), fPath);
+    QCOMPARE(fileInfo.getFileType(), fType);
+    QCOMPARE(fileInfo.getFileSize(), fSize);
+    QCOMPARE(fileInfo.getHash(), DEAD_HASH);
+    QCOMPARE(fileInfo.getDate(), dateFound);
+}
+
+void FileManagerTest::testFileInfoSetHash() {
+    fs::path fPath = "TestFiles/testfile1.txt";
+    QString fType = QString::fromStdString(fPath.extension().string());
+    uintmax_t fSize = fs::file_size(fPath);
+    QDateTime dateFound = QDateTime::currentDateTime();
+    QByteArray hash = QByteArray::fromHex("1234567890abcdef");
+
+    FileInfo fileInfo(fPath, fType, fSize, dateFound);
+
+    fileInfo.setHash(hash);
+    QVERIFY(fileInfo.getHash() != DEAD_HASH);
+    QCOMPARE(fileInfo.getHash(), hash);
+}
+
+void FileManagerTest::testFileInfoComparisonOperators() {
+    fs::path filePath1 = "TestFiles/testfile1.txt";
+    fs::path filePath2 = "TestFiles/testfile2.txt";
+    QString fileType = ".txt";
+    uintmax_t fileSize = 1024;
+    QByteArray hash1 = QByteArray::fromHex("1234567890abcdef");
+    QByteArray hash2 = QByteArray::fromHex("abcdef1234567890");
+    QDateTime dateFound = QDateTime::currentDateTime();
+
+    // Create 3 files with 2 being duplciates
+    FileInfo fileInfo1(filePath1, fileType, fileSize, hash1, dateFound);
+    FileInfo fileInfo2(filePath2, fileType, fileSize, hash2, dateFound);
+    FileInfo fileInfoDup(filePath1, fileType, fileSize, hash1, dateFound);
+    // Check FileInfo's defined operators
+    QVERIFY(fileInfo1 < fileInfo2);
+    QVERIFY(fileInfo1 == fileInfoDup);
+}
+
+void FileManagerTest::testTreeWidgetHierarchy() {
+    // Create tree widget
+    QTreeWidget treeWidget;
+    treeWidget.setColumnCount(2);
+
+    // Add a parent item with 3 child items
+    QTreeWidgetItem *parentItem = new QTreeWidgetItem(&treeWidget);
+    parentItem->setText(0, "Parent Group");
+    parentItem->setText(1, "0000-00-00");
+    parentItem->setCheckState(0, Qt::Unchecked);
+
+    // Add three children
+    for (int i = 0; i < 3; ++i) {
+        QTreeWidgetItem *childItem = new QTreeWidgetItem(parentItem);
+        childItem->setText(0, "Child " + QString::number(i + 1));
+        childItem->setText(1, "0000-00-00");
+        childItem->setCheckState(0, Qt::Unchecked);
+    }
+
+    // Check if the parent and children added
+    QCOMPARE(treeWidget.topLevelItemCount(), 1);
+    QCOMPARE(parentItem->childCount(), 3);
+
+    // Check if the child items are correctly added
+    for (int i = 0; i < 3; ++i) {
+        QCOMPARE(parentItem->child(i)->text(0), "Child " + QString::number(i + 1));
+    }
+}
+
+void FileManagerTest::testCheckingParentMarksAllChildren(){
+    // Create the main window and tree widget
+    MainWindow mainWindow;
+    QTreeWidget treeWidget;
+
+    // Populate a parent item with 3 child items
+    QTreeWidgetItem *parentItem = new QTreeWidgetItem(&treeWidget);
+    parentItem->setText(0, "Parent Group");
+    parentItem->setText(1, "0000-00-00");
+    parentItem->setCheckState(0, Qt::Unchecked);
+    // Add three children
+    for (int i = 0; i < 3; ++i) {
+        QTreeWidgetItem *childItem = new QTreeWidgetItem(parentItem);
+        childItem->setText(0, "Child " + QString::number(i + 1));
+        childItem->setText(1, "0000-00-00");
+        childItem->setCheckState(0, Qt::Unchecked);
+    }
+
+    // Simulate the parent checkbox being checked
+    parentItem->setCheckState(0, Qt::Checked);
+    // call the mainwindow check logic
+    mainWindow.onTreeItemChanged(parentItem);
+
+    // Verify that all child items of the parent are checked after
+    for (int i = 0; i < 3; ++i) {
+        QCOMPARE(parentItem->child(i)->checkState(0), Qt::Checked);
+    }
+}
+
+void FileManagerTest::testUncheckingChildSetsParentPartial(){
+    // Create the main window and tree widget
+    MainWindow mainWindow;
+    QTreeWidget treeWidget;
+
+    // Populate parent item with 3 child items (ALL CHECKED)
+    QTreeWidgetItem *parentItem = new QTreeWidgetItem(&treeWidget);
+    parentItem->setCheckState(0, Qt::Checked);
+    parentItem->setText(0, "Parent Group");
+    parentItem->setText(1, "0000-00-00");
+    // Add three children
+    for (int i = 0; i < 3; ++i) {
+        QTreeWidgetItem *childItem = new QTreeWidgetItem(parentItem);
+        childItem->setText(0, "Child " + QString::number(i + 1));
+        childItem->setText(1, "0000-00-00");
+        childItem->setCheckState(0, Qt::Checked);
+    }
+    // Simulate one of the child checkboxes being unchecked
+    QTreeWidgetItem *childItem = parentItem->child(0);
+    childItem->setCheckState(0, Qt::Unchecked);
+    // Run logic to partially check the parent
+    mainWindow.onTreeItemChanged(childItem);
+
+    // Verify that the parent item is set to "PartiallyChecked"
+    QCOMPARE(parentItem->checkState(0), Qt::PartiallyChecked);
+}
+
+void FileManagerTest::testUncheckingAllChildSetsParentUncheck(){
+    // Create the main window and tree widget
+    MainWindow mainWindow;
+    QTreeWidget treeWidget;
+
+    // Populate parent item with 3 child items (ALL CHECKED)
+    QTreeWidgetItem *parentItem = new QTreeWidgetItem(&treeWidget);
+    parentItem->setCheckState(0, Qt::Checked);
+    parentItem->setText(0, "Parent Group");
+    parentItem->setText(1, "0000-00-00");
+    // Add three children
+    for (int i = 0; i < 3; ++i) {
+        QTreeWidgetItem *childItem = new QTreeWidgetItem(parentItem);
+        childItem->setText(0, "Child " + QString::number(i + 1));
+        childItem->setText(1, "0000-00-00");
+        childItem->setCheckState(0, Qt::Checked);
+    }
+    // Simulate all of the child checkboxes being unchecked
+    for(int i = 0; i < parentItem->childCount(); i++){
+        parentItem->child(i)->setCheckState(0, Qt::Unchecked);
+
+    }
+    // Run logic that should uncheck the parent
+    mainWindow.onTreeItemChanged(parentItem->child(0));
+
+    // Verify that the parent item is set to "Unchecked"
+    QCOMPARE(parentItem->checkState(0), Qt::Unchecked);
+}
 // Cleans up after all test functions have executed
 void FileManagerTest::cleanupTestCase() {
-  qDebug("Called after all test cases.");
-  //  QString basePath = QCoreApplication::applicationDirPath();
-  // QDir testDir(basePath);
-  //  QString testFilesPath = testDir.filePath("TestFiles");
+    qDebug("Called after all test cases.");
+    //  QString basePath = QCoreApplication::applicationDirPath();
+    // QDir testDir(basePath);
+    //  QString testFilesPath = testDir.filePath("TestFiles");
 
-  // Remove test files created during the tests
-  // QFile::remove(testFilesPath + "/testfile1.txt");
-  // QFile::remove(testFilesPath + "/testfile2.txt");
-  // QFile::remove(testFilesPath + "/empty.txt");
+    // Remove test files created during the tests
+    // QFile::remove(testFilesPath + "/testfile1.txt");
+    // QFile::remove(testFilesPath + "/testfile2.txt");
+    // QFile::remove(testFilesPath + "/empty.txt");
 }
 // this calls main for the test class
 QTEST_MAIN(FileManagerTest)
