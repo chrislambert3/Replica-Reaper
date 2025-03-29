@@ -131,12 +131,6 @@ void MainWindow::ShowDupesInUI(const FileManager &f) {
 
     for (auto &a : it->second) {
       out = QString::fromStdString(a.getFilePath().string());
-      // Create a checkable item for out
-      QListWidgetItem *item = new QListWidgetItem(out);
-      item->setCheckState(Qt::Unchecked);
-      // out.append("     ");
-      ui->listWidget->addItem(item);
-
       // Logic for adding to list Tree:
       // make a a child for the parent hash item
       QTreeWidgetItem *childItem = new QTreeWidgetItem(parentHashItem);
