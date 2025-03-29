@@ -106,24 +106,15 @@ void FileManager::UpdateHashes(std::list<FileInfo>& list) {
     }
 }
 
-std::unordered_set<QByteArray> FileManager::StoreUniqueHashes(std::list<FileInfo>& list) {
-    // sets cant have duplicates by default
-    std::unordered_set<QByteArray> uniqueHashes;
-    for (auto& fileInfo : list) {
-        uniqueHashes.insert(fileInfo.getHash());
-    }
-    return uniqueHashes;
-}
-
 void FileManager::AddDupesToMap(std::list<FileInfo>& list) {
-    // Hash map implementation
+    // Hash map implementation:
     std::unordered_map<QByteArray, std::list<FileInfo>> hashToFilesMap;
 
-    // convert the list into a map with the key as the hash
-    // duplicate files with the same hash will add to the list
+    // convert the FileInfo list into a map with the file hash as the key
     for (auto& file : list) {
+        // hash key
         const QByteArray& hash = file.getHash();
-            hashToFilesMap[hash].push_back(file);
+        hashToFilesMap[hash].push_back(file);
     }
     // Iterate through the of hash keys and
     // add only duplicates (lists with more than 1 file)
