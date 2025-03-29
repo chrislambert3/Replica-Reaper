@@ -94,7 +94,7 @@ void FileManager::CheckAndAddDupes(std::list<FileInfo>& list) {
 
     list.sort();
 
-    //std::unordered_set<QByteArray> HashList = StoreUniqueHashes(list);
+    // std::unordered_set<QByteArray> HashList = StoreUniqueHashes(list);
 
     AddDupesToMap(list);
 }
