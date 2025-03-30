@@ -92,6 +92,8 @@ void MainWindow::onPushButtonClicked() {
 
     // Update progress bar
     ui->progressBar->setValue(i + 1);
+    // Show the percentage p = %; v = value; m = maxValue
+    ui->progressBar->setFormat("%p%");
 
     // Process events to keep UI responsive (for progress bar)
     QCoreApplication::processEvents();
