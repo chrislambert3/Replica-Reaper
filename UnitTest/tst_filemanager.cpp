@@ -57,6 +57,7 @@ class FileManagerTest : public QObject {
   void testFileInfoGetters();
   void testFileInfoSetHash();
   void testFileInfoComparisonOperators();
+  void testFileInfoDateCreated();
 
   // cleanupTestCase() will be called after the last test function was executed.
   void cleanupTestCase();
@@ -175,20 +176,17 @@ void FileManagerTest::testAddFileToList() {
   fs::path fPath = fs::current_path() / "TestFiles/testfile1.txt";
   FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
                 fs::file_size(fPath),
-                testManager.HashFile("TestFiles/testfile1.txt"),
-                QDateTime::currentDateTime());
+                testManager.HashFile("TestFiles/testfile1.txt"));
 
   fs::path fPathDupe = fs::current_path() / "TestFiles/testfile3.txt";
   FileInfo fileDupe(
       fPathDupe, QString::fromStdString(fPathDupe.extension().string()),
-      fs::file_size(fPathDupe), testManager.HashFile("TestFiles/testfile3.txt"),
-      QDateTime::currentDateTime());
+      fs::file_size(fPathDupe), testManager.HashFile("TestFiles/testfile3.txt"));
 
   fs::path fPathDiff = fs::current_path() / "TestFiles/testfile2.txt";
   FileInfo fileDiff(
       fPathDiff, QString::fromStdString(fPathDiff.extension().string()),
-      fs::file_size(fPathDiff), testManager.HashFile("TestFiles/testfile2.txt"),
-      QDateTime::currentDateTime());
+      fs::file_size(fPathDiff), testManager.HashFile("TestFiles/testfile2.txt"));
 
   // add test file to list
   testManager.addFileToList(file);
@@ -248,56 +246,49 @@ void FileManagerTest::testFileInfoConstruction_WithoutHash() {
   fs::path fPath = "TestFiles/testfile1.txt";
   QString fType = QString::fromStdString(fPath.extension().string());
   uintmax_t fSize = fs::file_size(fPath);
-  QDateTime dateFound = QDateTime::currentDateTime();
 
-  FileInfo fileInfo(fPath, fType, fSize, dateFound);
+  FileInfo fileInfo(fPath, fType, fSize);
 
   QCOMPARE(fileInfo.getFilePath(), fPath);
   QCOMPARE(fileInfo.getFileType(), fType);
   QCOMPARE(fileInfo.getFileSize(), fSize);
   QCOMPARE(fileInfo.getHash(), DEAD_HASH);
-  QCOMPARE(fileInfo.getDate(), dateFound);
 }
 void FileManagerTest::testFileInfoConstruction_WithHash() {
   fs::path fPath = "TestFiles/testfile1.txt";
   QString fType = QString::fromStdString(fPath.extension().string());
   uintmax_t fSize = fs::file_size(fPath);
   QByteArray hash = QByteArray::fromHex("1234567890abcdef");
-  QDateTime dateFound = QDateTime::currentDateTime();
 
-  FileInfo fileInfo(fPath, fType, fSize, hash, dateFound);
+  FileInfo fileInfo(fPath, fType, fSize, hash);
 
   QCOMPARE(fileInfo.getFilePath(), fPath);
   QCOMPARE(fileInfo.getFileType(), fType);
   QCOMPARE(fileInfo.getFileSize(), fSize);
   QVERIFY(fileInfo.getHash() != DEAD_HASH);
   QCOMPARE(fileInfo.getHash(), hash);
-  QCOMPARE(fileInfo.getDate(), dateFound);
 }
 
 void FileManagerTest::testFileInfoGetters() {
   fs::path fPath = "TestFiles/testfile1.txt";
   QString fType = QString::fromStdString(fPath.extension().string());
   uintmax_t fSize = fs::file_size(fPath);
-  QDateTime dateFound = QDateTime::currentDateTime();
 
-  FileInfo fileInfo(fPath, fType, fSize, dateFound);
+  FileInfo fileInfo(fPath, fType, fSize);
 
   QCOMPARE(fileInfo.getFilePath(), fPath);
   QCOMPARE(fileInfo.getFileType(), fType);
   QCOMPARE(fileInfo.getFileSize(), fSize);
   QCOMPARE(fileInfo.getHash(), DEAD_HASH);
-  QCOMPARE(fileInfo.getDate(), dateFound);
 }
 
 void FileManagerTest::testFileInfoSetHash() {
   fs::path fPath = "TestFiles/testfile1.txt";
   QString fType = QString::fromStdString(fPath.extension().string());
   uintmax_t fSize = fs::file_size(fPath);
-  QDateTime dateFound = QDateTime::currentDateTime();
   QByteArray hash = QByteArray::fromHex("1234567890abcdef");
 
-  FileInfo fileInfo(fPath, fType, fSize, dateFound);
+  FileInfo fileInfo(fPath, fType, fSize);
 
   fileInfo.setHash(hash);
   QVERIFY(fileInfo.getHash() != DEAD_HASH);
@@ -311,15 +302,27 @@ void FileManagerTest::testFileInfoComparisonOperators() {
   uintmax_t fileSize = 1024;
   QByteArray hash1 = QByteArray::fromHex("1234567890abcdef");
   QByteArray hash2 = QByteArray::fromHex("abcdef1234567890");
-  QDateTime dateFound = QDateTime::currentDateTime();
 
   // Create 3 files with 2 being duplciates
-  FileInfo fileInfo1(filePath1, fileType, fileSize, hash1, dateFound);
-  FileInfo fileInfo2(filePath2, fileType, fileSize, hash2, dateFound);
-  FileInfo fileInfoDup(filePath1, fileType, fileSize, hash1, dateFound);
+  FileInfo fileInfo1(filePath1, fileType, fileSize, hash1);
+  FileInfo fileInfo2(filePath2, fileType, fileSize, hash2);
+  FileInfo fileInfoDup(filePath1, fileType, fileSize, hash1);
   // Check FileInfo's defined operators
   QVERIFY(fileInfo1 < fileInfo2);
   QVERIFY(fileInfo1 == fileInfoDup);
+}
+
+void FileManagerTest::testFileInfoDateCreated() {
+    qDebug("test date created is correct");
+    fs::path fPath = fs::current_path() / "TestFiles/testfile1.txt";
+    FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
+                  fs::file_size(fPath),
+                  testManager.HashFile("TestFiles/testfile1.txt"));
+    // get date for test
+    QFileInfo fileInfo(QString::fromStdString(fPath));
+    QDateTime time = fileInfo.birthTime();
+
+    QCOMPARE(file.getDate(), time);
 }
 
 void FileManagerTest::testTreeWidgetHierarchy() {

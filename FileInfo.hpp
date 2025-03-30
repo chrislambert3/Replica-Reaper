@@ -6,35 +6,35 @@
 #include <QDateTime>
 #include <cstdint>
 #include <filesystem>
+#include <QFileInfo>
+#include <iostream>
 
 inline const QByteArray DEAD_HASH = QByteArray::fromHex("0000000000000000");
 
 namespace fs = std::filesystem;
 
-class FileInfo{
+class FileInfo {
  public:
     FileInfo(const fs::path& FilePath,
              const QString& FileType,
-             const uintmax_t FileSize,
-             const QDateTime& DateFound):
+             const uintmax_t FileSize):
             _FilePath(FilePath),
             _FileType(FileType),
             _FileSize(FileSize),
             _Hash(DEAD_HASH),
-            _DateFound(DateFound) {}
+            _DateCreated(getFileCreationDate(FilePath)) {}
     FileInfo(const fs::path& FilePath,
              const QString& FileType,
              const uintmax_t FileSize,
-             const QByteArray& Hash,
-             const QDateTime& DateFound):
+             const QByteArray& Hash):
         _FilePath(FilePath),
         _FileType(FileType),
         _FileSize(FileSize),
         _Hash(Hash),
-        _DateFound(DateFound) {}
+        _DateCreated(getFileCreationDate(FilePath)) {}
     const fs::path& getFilePath() const { return _FilePath; }
     QByteArray getHash() { return _Hash; }
-    const QDateTime& getDate() const { return _DateFound; }
+    const QDateTime& getDate() const { return _DateCreated; }
     const QString& getFileType() const { return _FileType; }
     const uintmax_t& getFileSize() const { return _FileSize; }
 
@@ -48,9 +48,12 @@ class FileInfo{
     QString _FileType;
     uintmax_t _FileSize;
     QByteArray _Hash;
-    QDateTime _DateFound;
+    QDateTime _DateCreated;
+
+    static QDateTime getFileCreationDate(const fs::path& filePath) {
+        QFileInfo fileInfo(QString::fromStdString(filePath.string()));
+        return fileInfo.birthTime();
+    }
 };
-
-
 
 #endif /* FILEINFO_HPP */

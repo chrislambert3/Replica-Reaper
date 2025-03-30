@@ -83,9 +83,8 @@ void MainWindow::onPushButtonClicked() {
   for (int i = 0; i < filePaths.size(); ++i) {
     // setup for FileInfo class
     fs::path fPath = filePaths[i].toStdString();
-    QDateTime currentDateTime = QDateTime::currentDateTime();
     FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
-                  fs::file_size(fPath), currentDateTime);
+                  fs::file_size(fPath));
     // Push and sort FileInfo class into FileManager class
     manager->addFileToList(file);  // passes in fileinfo
     // std::cout << *manager;  // DEBUG *************
