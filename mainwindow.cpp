@@ -78,7 +78,7 @@ void MainWindow::onPushButtonClicked() {
   // Set a timer for hashing all files
   QElapsedTimer timer;
   timer.start();
-
+  qDebug() <<"Total amount files to cover: " << filePaths.size();
   // Loop through each file and hash it (prints to console for now)
   for (int i = 0; i < filePaths.size(); ++i) {
     // setup for FileInfo class
@@ -90,11 +90,12 @@ void MainWindow::onPushButtonClicked() {
     manager->addFileToList(file);  // passes in fileinfo
     // std::cout << *manager;  // DEBUG *************
 
-    // Update progress bar
-    ui->progressBar->setValue(i + 1);
-
-    // Process events to keep UI responsive (for progress bar)
-    QCoreApplication::processEvents();
+    if (i % 50 == 0 || i == filePaths.size() - 1) {  // Update every 50 files
+        ui->progressBar->setValue(i + 1);     // Update progress bar
+        // Process events to keep UI responsive (for progress bar)
+        QCoreApplication::processEvents();
+    }
+    // qDebug() << "File No: " << i;
   }
 
   // std::cout << *manager;  // DEBUG *************
