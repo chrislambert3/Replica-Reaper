@@ -355,7 +355,7 @@ void FileManagerTest::testFileInfoDateCreated() {
                   fs::file_size(fPath),
                   testManager.HashFile("TestFiles/testfile1.txt"));
     // get date for test
-    QFileInfo fileInfo(QString::fromStdString(fPath));
+    QFileInfo fileInfo(QString::fromStdString(fPath.string()));
     QDateTime time = fileInfo.birthTime();
 
     QCOMPARE(file.getDate(), time);
