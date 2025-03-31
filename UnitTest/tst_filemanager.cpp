@@ -182,8 +182,7 @@ void FileManagerTest::testInitAddFileToList() {
     fs::path fPath = fs::current_path() / "TestFiles/testfile1.txt";
     FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
                   fs::file_size(fPath),
-                  testManager.HashFile("TestFiles/testfile1.txt"),
-                  QDateTime::currentDateTime());
+                  testManager.HashFile("TestFiles/testfile1.txt"));
 
     // add test file to list
     testManager.addFileToList(file);
@@ -233,20 +232,17 @@ void FileManagerTest::testAddNonDupeToAddFileToList() {
     fs::path fPath = fs::current_path() / "TestFiles/testfile1.txt";
     FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
                   fs::file_size(fPath),
-                  testManager.HashFile("TestFiles/testfile1.txt"),
-                  QDateTime::currentDateTime());
+                  testManager.HashFile("TestFiles/testfile1.txt"));
 
     fs::path fPathDupe = fs::current_path() / "TestFiles/testfile3.txt";
     FileInfo fileDupe(
         fPathDupe, QString::fromStdString(fPathDupe.extension().string()),
-        fs::file_size(fPathDupe), testManager.HashFile("TestFiles/testfile3.txt"),
-        QDateTime::currentDateTime());
+        fs::file_size(fPathDupe), testManager.HashFile("TestFiles/testfile3.txt"));
 
     fs::path fPathDiff = fs::current_path() / "TestFiles/testfile2.txt";
     FileInfo fileDiff(
         fPathDiff, QString::fromStdString(fPathDiff.extension().string()),
-        fs::file_size(fPathDiff), testManager.HashFile("TestFiles/testfile2.txt"),
-        QDateTime::currentDateTime());
+        fs::file_size(fPathDiff), testManager.HashFile("TestFiles/testfile2.txt"));
 
     qDebug(
         "testAddFileToList verifying non-duplicate goes to different size list");

@@ -120,6 +120,16 @@ void FileManager::AddDupesToMap(std::list<FileInfo>& list) {
     // add only duplicates (lists with more than 1 file)
     for (auto& [hash, dList] : hashToFilesMap) {
         if (dList.size() > 1) {
+            // move original item to 1st element in list
+            auto earliest = std::min_element(dList.begin(), dList.end(),
+                                                [] (const FileInfo& l, const FileInfo& r) {
+                return l.getDate() < r.getDate();
+            });
+
+            if (earliest != dList.end()) {
+                dList.splice(dList.begin(), dList, earliest);
+            }
+
             Dupes[hash] = dList;
         }
     }
