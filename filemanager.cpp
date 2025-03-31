@@ -94,12 +94,9 @@ void FileManager::CheckAndAddDupes(std::list<FileInfo>& list) {
 
     list.sort();
 
-    std::list<QByteArray> HashList = StoreUniqueHashes(list);
+    // std::unordered_set<QByteArray> HashList = StoreUniqueHashes(list);
 
-    // runs through the list and pushes all elements of list
-    // matching hash to dlist. If dlist is > 1 then it is pushed
-    // to dupe
-    AddDupesToMap(list, HashList);
+    AddDupesToMap(list);
 }
 
 void FileManager::UpdateHashes(std::list<FileInfo>& list) {
@@ -109,32 +106,21 @@ void FileManager::UpdateHashes(std::list<FileInfo>& list) {
     }
 }
 
-std::list<QByteArray> FileManager::StoreUniqueHashes(std::list<FileInfo>& list) {
-    // List to hold duplicates
-    std::list<QByteArray> uniqueHashes;
-    // find and store all unique hashes
-    for (auto& fileInfo : list) {
-        QByteArray currentHash = fileInfo.getHash();
-        // is hash already in hashList?
-        auto it = std::find(uniqueHashes.begin(), uniqueHashes.end(), currentHash);
-        if (it == uniqueHashes.end()) {
-            uniqueHashes.push_back(currentHash);
-        }
+void FileManager::AddDupesToMap(std::list<FileInfo>& list) {
+    // Hash map implementation:
+    std::unordered_map<QByteArray, std::list<FileInfo>> hashToFilesMap;
+
+    // convert the FileInfo list into a map with the file hash as the key
+    for (auto& file : list) {
+        // hash key
+        const QByteArray& hash = file.getHash();
+        hashToFilesMap[hash].push_back(file);
     }
-    return uniqueHashes;
-}
-
-void FileManager::AddDupesToMap(std::list<FileInfo>& list, const std::list<QByteArray>& HashList) {
-    for (const auto& a : HashList) {
-        std::list<FileInfo> dList;
-        for (auto& b : list) {
-            if (a == b.getHash()) {
-                dList.push_back(b);
-            }
-        }
-
+    // Iterate through the of hash keys and
+    // add only duplicates (lists with more than 1 file)
+    for (auto& [hash, dList] : hashToFilesMap) {
         if (dList.size() > 1) {
-            Dupes[dList.begin()->getHash()] = {dList};
+            Dupes[hash] = dList;
         }
     }
 }

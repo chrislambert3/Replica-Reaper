@@ -15,6 +15,7 @@
 #include <QMenu>
 #include <QDirIterator>
 #include <unordered_map>
+#include <unordered_set>
 #include <iostream>
 #include <list>
 #include <string>
@@ -22,6 +23,7 @@
 #include "FileInfo.hpp"
 
 using std::unordered_map;
+using std::unordered_set;
 
 class FileManager : public QObject {
     Q_OBJECT
@@ -37,8 +39,7 @@ class FileManager : public QObject {
     void CheckAndAddDupes(std::list<FileInfo>& list);
     void setMainWindow(QMainWindow *ui);
     void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
-    std::list<QByteArray> StoreUniqueHashes(std::list<FileInfo>& list);
-    void AddDupesToMap(std::list<FileInfo>& list, const std::list<QByteArray>& HashList);
+    void AddDupesToMap(std::list<FileInfo>& list);
     void UpdateHashes(std::list<FileInfo>& list);
     ~FileManager();
 

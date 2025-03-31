@@ -40,9 +40,10 @@ class FileManagerTest : public QObject {
   void testHashFile();
   void testHashFile_data();
   void testHashFile_FileNotFound();
-  void
-  testListFilesFail();  // test invalid directory returns empty QStringList()
-  void testAddFileToList();
+  void testListFilesFail();
+  void testInitAddFileToList();
+  void testAddDupeToAddFileToList();
+  void testAddNonDupeToAddFileToList();
 
   // UI Components Tests:
   void testProgressBarUpdate();
@@ -107,6 +108,7 @@ void FileManagerTest::initTestCase() {  // will be called before the first test
   emptyFile.open(QIODevice::WriteOnly);
   emptyFile.close();
 }
+
 // This creates a data table scoped to only testHashFile() test function ONLY
 // Since theres 3 Rows testHashFile() will run 3 times with 3 entries
 void FileManagerTest::testHashFile_data() {
@@ -137,6 +139,7 @@ void FileManagerTest::testHashFile_data() {
              "5");
   qDebug() << "Hash file data table created";
 }
+
 // Test function that compares file hashes
 void FileManagerTest::testHashFile() {
   // QFETCH is how it pulls the data from the testHashFile_data() table,
@@ -150,6 +153,7 @@ void FileManagerTest::testHashFile() {
   // qDebug() << "Hash: " << actualHash;
   QCOMPARE(actualHash, expectedHash);  // Compare actual hash with expected hash
 }
+
 // this should trigger
 void FileManagerTest::testHashFile_FileNotFound() {
   QTest::ignoreMessage(QtWarningMsg,
@@ -157,7 +161,9 @@ void FileManagerTest::testHashFile_FileNotFound() {
   QByteArray result = testManager.HashFile("non_existent_file.txt");
   QVERIFY(result.isEmpty());
 }
+
 // Test to check invalid directory path returns a null list
+// test invalid directory returns empty QStringList()
 void FileManagerTest::testListFilesFail() {
   qDebug("testListFilesFail test.");
 
@@ -168,10 +174,34 @@ void FileManagerTest::testListFilesFail() {
   QStringList result = testManager.ListFiles("/path/to/invalid/directory");
   QCOMPARE(result.isEmpty(), true);
 }
-// Test to check files added to list
-void FileManagerTest::testAddFileToList() {
-  qDebug("testAddFileToList adding first file test.");
 
+void FileManagerTest::testInitAddFileToList() {
+    qDebug("testAddFileToList adding first file test.");
+
+    // create test files to ensure its added correctly
+    fs::path fPath = fs::current_path() / "TestFiles/testfile1.txt";
+    FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
+                  fs::file_size(fPath),
+                  testManager.HashFile("TestFiles/testfile1.txt"),
+                  QDateTime::currentDateTime());
+
+    // add test file to list
+    testManager.addFileToList(file);
+
+    // verify file type has 1 entry
+    QVERIFY(testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]
+                .size() == 1);
+
+    // verify file matches
+    QCOMPARE(
+        testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]
+            .front()
+            .getFilePath(),
+        file.getFilePath());
+}
+
+// Test to check files added to list
+void FileManagerTest::testAddDupeToAddFileToList() {
   // create test files to ensure its added correctly
   fs::path fPath = fs::current_path() / "TestFiles/testfile1.txt";
   FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
@@ -188,20 +218,6 @@ void FileManagerTest::testAddFileToList() {
       fPathDiff, QString::fromStdString(fPathDiff.extension().string()),
       fs::file_size(fPathDiff), testManager.HashFile("TestFiles/testfile2.txt"));
 
-  // add test file to list
-  testManager.addFileToList(file);
-
-  // verify file type has 1 entry
-  QVERIFY(testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]
-              .size() == 1);
-
-  // verify file matches
-  QCOMPARE(
-      testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]
-          .front()
-          .getFilePath(),
-      file.getFilePath());
-
   qDebug("testAddFileToList verifying duplicate goes to the same list");
 
   // add test file to list
@@ -210,22 +226,44 @@ void FileManagerTest::testAddFileToList() {
   // verify type and size have 2 entries
   QVERIFY(testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]
               .size() == 2);
-
-  qDebug(
-      "testAddFileToList verifying non-duplicate goes to different size list");
-
-  // add different test file to list
-  testManager.addFileToList(fileDiff);
-
-  // test files at different location
-  QVERIFY(testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]
-              .size() == 2);
-  QVERIFY(
-      testManager
-          .AllFilesByTypeSize[fileDiff.getFileType()][fileDiff.getFileSize()]
-          .size() == 1);
-  QVERIFY(file.getHash() != fileDiff.getHash());  // verify different hash
 }
+
+void FileManagerTest::testAddNonDupeToAddFileToList() {
+    // create test files to ensure its added correctly
+    fs::path fPath = fs::current_path() / "TestFiles/testfile1.txt";
+    FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
+                  fs::file_size(fPath),
+                  testManager.HashFile("TestFiles/testfile1.txt"),
+                  QDateTime::currentDateTime());
+
+    fs::path fPathDupe = fs::current_path() / "TestFiles/testfile3.txt";
+    FileInfo fileDupe(
+        fPathDupe, QString::fromStdString(fPathDupe.extension().string()),
+        fs::file_size(fPathDupe), testManager.HashFile("TestFiles/testfile3.txt"),
+        QDateTime::currentDateTime());
+
+    fs::path fPathDiff = fs::current_path() / "TestFiles/testfile2.txt";
+    FileInfo fileDiff(
+        fPathDiff, QString::fromStdString(fPathDiff.extension().string()),
+        fs::file_size(fPathDiff), testManager.HashFile("TestFiles/testfile2.txt"),
+        QDateTime::currentDateTime());
+
+    qDebug(
+        "testAddFileToList verifying non-duplicate goes to different size list");
+
+    // add different test file to list
+    testManager.addFileToList(fileDiff);
+
+    // test files at different location
+    QVERIFY(testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]
+                .size() == 2);
+    QVERIFY(
+        testManager
+            .AllFilesByTypeSize[fileDiff.getFileType()][fileDiff.getFileSize()]
+            .size() == 1);
+    QVERIFY(file.getHash() != fileDiff.getHash());  // verify different hash
+}
+
 void FileManagerTest::testProgressBarUpdate() {
   // Simulate setting progress bar values
   QProgressBar progressBar;
@@ -242,6 +280,7 @@ void FileManagerTest::testProgressBarUpdate() {
   progressBar.setValue(100);
   QCOMPARE(progressBar.value(), 100);
 }
+
 void FileManagerTest::testFileInfoConstruction_WithoutHash() {
   fs::path fPath = "TestFiles/testfile1.txt";
   QString fType = QString::fromStdString(fPath.extension().string());
@@ -254,6 +293,7 @@ void FileManagerTest::testFileInfoConstruction_WithoutHash() {
   QCOMPARE(fileInfo.getFileSize(), fSize);
   QCOMPARE(fileInfo.getHash(), DEAD_HASH);
 }
+
 void FileManagerTest::testFileInfoConstruction_WithHash() {
   fs::path fPath = "TestFiles/testfile1.txt";
   QString fType = QString::fromStdString(fPath.extension().string());
@@ -437,6 +477,7 @@ void FileManagerTest::testUncheckingAllChildSetsParentUncheck() {
   // Verify that the parent item is set to "Unchecked"
   QCOMPARE(parentItem->checkState(0), Qt::Unchecked);
 }
+
 // Cleans up after all test functions have executed
 void FileManagerTest::cleanupTestCase() {
   qDebug("Called after all test cases.");
@@ -449,6 +490,7 @@ void FileManagerTest::cleanupTestCase() {
   // QFile::remove(testFilesPath + "/testfile2.txt");
   // QFile::remove(testFilesPath + "/empty.txt");
 }
+
 // this calls main for the test class
 QTEST_MAIN(FileManagerTest)
 // leave this inlcude alone
