@@ -4,9 +4,9 @@
 #define FILEINFO_HPP
 #include <QString>
 #include <QDateTime>
-#include <cstdint>
-#include <filesystem>
 #include <QFileInfo>
+#include <filesystem>
+#include <cstdint>
 #include <iostream>
 
 inline const QByteArray DEAD_HASH = QByteArray::fromHex("0000000000000000");
