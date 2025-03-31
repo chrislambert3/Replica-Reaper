@@ -91,15 +91,11 @@ void MainWindow::onPushButtonClicked() {
     // std::cout << *manager;  // DEBUG *************
 
     if (i % 50 == 0 || i == filePaths.size() - 1) {  // Update every 50 files
-        ui->progressBar->setValue(i + 1);
+        ui->progressBar->setValue(i + 1);     // Update progress bar
+        // Process events to keep UI responsive (for progress bar)
         QCoreApplication::processEvents();
     }
     // qDebug() << "File No: " << i;
-    // Update progress bar
-    // ui->progressBar->setValue(i + 1);
-
-    // Process events to keep UI responsive (for progress bar)
-    // QCoreApplication::processEvents();
   }
 
   // std::cout << *manager;  // DEBUG *************
