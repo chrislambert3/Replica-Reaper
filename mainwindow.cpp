@@ -116,13 +116,9 @@ void MainWindow::onPushButtonClicked() {
 void MainWindow::ShowDupesInUI(const FileManager &f) {
   QString out;
   for (auto it = f.Dupes.begin(); it != f.Dupes.end(); ++it) {
-    // Dupes groups by {hash: list<fileinfo>}
-
-    // Get the key to the map (the hash)
-    QString hashGroup = QString(it->first);
     // Make a parent item for the list tree widget
     QTreeWidgetItem *parentHashItem = new QTreeWidgetItem(ui->treeWidget);
-    parentHashItem->setText(0, "Group: " + hashGroup);
+    parentHashItem->setText(0, QString::fromStdString(it->second.front().getFilePath().string()));
     parentHashItem->setText(
         1, "{Placeholder}");  // Next column value to go under Date Modified
     parentHashItem->setCheckState(0, Qt::Unchecked);  // Default unchecked
