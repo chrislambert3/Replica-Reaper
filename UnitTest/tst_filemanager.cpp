@@ -5,6 +5,8 @@
 #include <QProgressBar>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
+#include <QSignalSpy>
+#include <QTemporaryDir>
 #include <filesystem>
 #include <string>
 #include "../filemanager.hpp"
@@ -60,6 +62,12 @@ class FileManagerTest : public QObject {
   void testFileInfoSetHash();
   void testFileInfoComparisonOperators();
   void testFileInfoDateCreated();
+
+  // Worker Class Tests:
+  void testWorkerProcessFiles();
+  void testWorkerProcessFiles_EmptyDir();
+  void testProcessFiles_InvalidPath();
+  void testWorkerThreadExec();
 
   // cleanupTestCase() will be called after the last test function was executed.
   void cleanupTestCase();
@@ -200,7 +208,6 @@ void FileManagerTest::testInitAddFileToList() {
         file.getFilePath());
 }
 
-// Test to check files added to list
 void FileManagerTest::testAddDupeToAddFileToList() {
   // create test files to ensure its added correctly
   fs::path fPath = fs::current_path() / "TestFiles/testfile1.txt";
@@ -474,6 +481,104 @@ void FileManagerTest::testUncheckingAllChildSetsParentUncheck() {
   // Verify that the parent item is set to "Unchecked"
   QCOMPARE(parentItem->checkState(0), Qt::Unchecked);
 }
+
+void FileManagerTest::testWorkerProcessFiles() {
+    FileManager mockManager;
+    // Set teh TestFiles directory
+    QString testPath = "TestFiles/";
+
+    Worker worker(&mockManager, testPath);
+    // Detects if the worker signals (public slots) are emitted
+    QSignalSpy spyMax(&worker, &Worker::progressMaxUpdate);
+    QSignalSpy spyUpdate(&worker, &Worker::progressUpdate);
+    QSignalSpy spyComplete(&worker, &Worker::hashingComplete);
+    QSignalSpy spyFinish(&worker, &Worker::workerFinished);
+
+    worker.processFiles();
+
+    QCOMPARE(spyMax.count(), 1);          // Max progress emitted once
+    QVERIFY(spyUpdate.count() > 0);       // Progress updated multiple times
+    QCOMPARE(spyComplete.count(), 1);     // Hashing completed emitted once
+    QCOMPARE(spyFinish.count(), 1);       // Worker finished emitted once
+}
+
+void FileManagerTest::testWorkerProcessFiles_EmptyDir(){
+
+    FileManager mockManager;
+    QTemporaryDir tempDir;
+    QVERIFY(tempDir.isValid());  // Ensure temp dir is created
+
+    Worker worker(&mockManager, tempDir.path());
+
+    QSignalSpy spyMax(&worker, &Worker::progressMaxUpdate);
+    QSignalSpy spyUpdate(&worker, &Worker::progressUpdate);
+    QSignalSpy spyComplete(&worker, &Worker::hashingComplete);
+    QSignalSpy spyFinish(&worker, &Worker::workerFinished);
+
+    worker.processFiles();
+
+    QCOMPARE(spyMax.count(), 1);      // Should emit max progress (0 files)
+    QCOMPARE(spyUpdate.count(), 0);   // No updates since no files
+    QCOMPARE(spyComplete.count(), 1); // Should still complete
+    QCOMPARE(spyFinish.count(), 1);   // Should still finish
+}
+
+void FileManagerTest::testProcessFiles_InvalidPath() {
+    FileManager mockManager;
+    QString invalidPath = "fake/invalid/path/";
+
+    Worker worker(&mockManager, invalidPath);
+
+    QSignalSpy spyMax(&worker, &Worker::progressMaxUpdate);
+    QSignalSpy spyUpdate(&worker, &Worker::progressUpdate);
+    QSignalSpy spyComplete(&worker, &Worker::hashingComplete);
+    QSignalSpy spyFinish(&worker, &Worker::workerFinished);
+
+    worker.processFiles();
+
+    QCOMPARE(spyMax.count(), 1);  // Should still emit, but with 0 files
+    QCOMPARE(spyUpdate.count(), 0);  // No updates since no files
+    QCOMPARE(spyComplete.count(), 1); // Should still complete
+    QCOMPARE(spyFinish.count(), 1);  // Should still finish
+}
+
+void FileManagerTest::testWorkerThreadExec() {
+    FileManager mockManager;
+    QString testPath = "TestFiles/";
+
+
+    Worker *worker = new Worker(&mockManager, testPath);
+    QThread *workerThread = new QThread();
+
+    worker->moveToThread(workerThread);
+
+    QSignalSpy spyMax(worker, &Worker::progressMaxUpdate);
+    QSignalSpy spyUpdate(worker, &Worker::progressUpdate);
+    QSignalSpy spyComplete(worker, &Worker::hashingComplete);
+    QSignalSpy spyFinish(worker, &Worker::workerFinished);
+
+    // Start the thread and execute `processFiles` within it
+    connect(workerThread, &QThread::started, worker, &Worker::processFiles);
+    connect(worker, &Worker::workerFinished, workerThread, &QThread::quit);
+    connect(worker, &Worker::workerFinished, worker, &Worker::deleteLater);
+
+    workerThread->start();
+
+    // Use QEventLoop to wait for workerFinished
+    QEventLoop loop;
+    connect(worker, &Worker::workerFinished, &loop, &QEventLoop::quit);
+    loop.exec();
+    // This keeps the event loop running until workerFinished() is emitted
+
+    QCOMPARE(spyMax.count(), 1);       // Should still emit max progress
+    QVERIFY(spyUpdate.count() > 0);    // Progress updates should happen
+    QCOMPARE(spyComplete.count(), 1);  // Completion signal must be emitted
+    QCOMPARE(spyFinish.count(), 1);    // Worker should signal it's done
+
+    workerThread->quit();
+    workerThread->wait(); // Ensure thread is properly closed
+}
+
 
 // Cleans up after all test functions have executed
 void FileManagerTest::cleanupTestCase() {
