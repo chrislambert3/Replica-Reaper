@@ -69,32 +69,37 @@ void MainWindow::onPushButtonClicked() {
   }
 
   // Set up the progress bar
-  ui->progressBar->setValue(0);                   // sets it to 0
-  ui->progressBar->setMinimum(0);                 // Min value
+  ui->progressBar->setValue(0);    // sets it to 0
+  ui->progressBar->setMinimum(0);  // Min value
 
   // This will set thr progress bar to "busy" mode
   // The worker will reset the maximum after manager->ListFiles() is called
   ui->progressBar->setMaximum(0);
 
   // Worker class handles duplicate detection algorithm
-  Worker *worker = new Worker(manager,path);
+  Worker *worker = new Worker(manager, path);
   QThread *workerThread = new QThread(this);  // Create a thread for the worker
   // Run the worker object in the thread
   worker->moveToThread(workerThread);
   // Sets the function to call for when thread starts
   connect(workerThread, &QThread::started, worker, &Worker::processFiles);
   // Sends max progress value from thread to UI
-  connect(worker, &Worker::progressMaxUpdate, this, &MainWindow::setProgressMax);
+  connect(worker, &Worker::progressMaxUpdate, this,
+          &MainWindow::setProgressMax);
   // Sends the current progress bar value from thread to UI
   connect(worker, &Worker::progressUpdate, this, &MainWindow::updateProgress);
   // Handles what to do before exit (Shows Dupes to the UI)
-  connect(worker, &Worker::hashingComplete, this, &MainWindow::handleHashingComplete);
+  connect(worker, &Worker::hashingComplete, this,
+          &MainWindow::handleHashingComplete);
   // Deletes the resources when the thread is finished
-  connect(workerThread, &QThread::finished, workerThread, &QThread::deleteLater);
+  connect(workerThread, &QThread::finished, workerThread,
+          &QThread::deleteLater);
 
   // Connect the workerFinished signal to cleanup the thread
-  connect(worker, &Worker::workerFinished, workerThread, &QThread::quit); // Clean up thread
-  connect(worker, &Worker::workerFinished, worker, &Worker::deleteLater);  // Clean up worker object
+  connect(worker, &Worker::workerFinished, workerThread,
+          &QThread::quit);  // Clean up thread
+  connect(worker, &Worker::workerFinished, worker,
+          &Worker::deleteLater);  // Clean up worker object
 
   workerThread->start();
 }
@@ -110,7 +115,8 @@ void MainWindow::ShowDupesInUI(const FileManager &f) {
   for (auto it = f.Dupes.begin(); it != f.Dupes.end(); ++it) {
     // Make a parent item for the list tree widget
     QTreeWidgetItem *parentHashItem = new QTreeWidgetItem(ui->treeWidget);
-    parentHashItem->setText(0, QString::fromStdString(it->second.front().getFilePath().string()));
+    parentHashItem->setText(
+        0, QString::fromStdString(it->second.front().getFilePath().string()));
     parentHashItem->setText(
         1, "{Placeholder}");  // Next column value to go under Date Modified
     parentHashItem->setCheckState(0, Qt::Unchecked);  // Default unchecked
@@ -217,18 +223,18 @@ void MainWindow::printCheckedItems() {
   }
 }
 void MainWindow::setProgressMax(int max) {
-    ui->progressBar->setMaximum(max);  // Update the progress bar maximum
-    QCoreApplication::processEvents();
+  ui->progressBar->setMaximum(max);  // Update the progress bar maximum
+  QCoreApplication::processEvents();
 }
 void MainWindow::updateProgress(int progress) {
-    ui->progressBar->setValue(progress);
-    QCoreApplication::processEvents();
+  ui->progressBar->setValue(progress);
+  QCoreApplication::processEvents();
 }
 void MainWindow::handleHashingComplete(qint64 elapsedTime) {
-    QString message =
-        "Took " + QString::number(elapsedTime / 1000.0, 'f') + " seconds";
-    manager->ShowNotification("Hashing Complete", message);
-    ShowDupesInUI(*manager);
-    ui->RunReaperBTN->setEnabled(true); // re-enable the button
-    // Handle the completion of hashing (notify the user, etc.)
+  QString message =
+      "Took " + QString::number(elapsedTime / 1000.0, 'f') + " seconds";
+  manager->ShowNotification("Hashing Complete", message);
+  ShowDupesInUI(*manager);
+  ui->RunReaperBTN->setEnabled(true);  // re-enable the button
+  // Handle the completion of hashing (notify the user, etc.)
 }

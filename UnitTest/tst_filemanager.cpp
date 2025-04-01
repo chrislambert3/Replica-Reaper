@@ -185,27 +185,27 @@ void FileManagerTest::testListFilesFail() {
 }
 
 void FileManagerTest::testInitAddFileToList() {
-    qDebug("testAddFileToList adding first file test.");
+  qDebug("testAddFileToList adding first file test.");
 
-    // create test files to ensure its added correctly
-    fs::path fPath = fs::current_path() / "TestFiles/testfile1.txt";
-    FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
-                  fs::file_size(fPath),
-                  testManager.HashFile("TestFiles/testfile1.txt"));
+  // create test files to ensure its added correctly
+  fs::path fPath = fs::current_path() / "TestFiles/testfile1.txt";
+  FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
+                fs::file_size(fPath),
+                testManager.HashFile("TestFiles/testfile1.txt"));
 
-    // add test file to list
-    testManager.addFileToList(file);
+  // add test file to list
+  testManager.addFileToList(file);
 
-    // verify file type has 1 entry
-    QVERIFY(testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]
-                .size() == 1);
+  // verify file type has 1 entry
+  QVERIFY(testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]
+              .size() == 1);
 
-    // verify file matches
-    QCOMPARE(
-        testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]
-            .front()
-            .getFilePath(),
-        file.getFilePath());
+  // verify file matches
+  QCOMPARE(
+      testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]
+          .front()
+          .getFilePath(),
+      file.getFilePath());
 }
 
 void FileManagerTest::testAddDupeToAddFileToList() {
@@ -216,14 +216,16 @@ void FileManagerTest::testAddDupeToAddFileToList() {
                 testManager.HashFile("TestFiles/testfile1.txt"));
 
   fs::path fPathDupe = fs::current_path() / "TestFiles/testfile3.txt";
-  FileInfo fileDupe(
-      fPathDupe, QString::fromStdString(fPathDupe.extension().string()),
-      fs::file_size(fPathDupe), testManager.HashFile("TestFiles/testfile3.txt"));
+  FileInfo fileDupe(fPathDupe,
+                    QString::fromStdString(fPathDupe.extension().string()),
+                    fs::file_size(fPathDupe),
+                    testManager.HashFile("TestFiles/testfile3.txt"));
 
   fs::path fPathDiff = fs::current_path() / "TestFiles/testfile2.txt";
-  FileInfo fileDiff(
-      fPathDiff, QString::fromStdString(fPathDiff.extension().string()),
-      fs::file_size(fPathDiff), testManager.HashFile("TestFiles/testfile2.txt"));
+  FileInfo fileDiff(fPathDiff,
+                    QString::fromStdString(fPathDiff.extension().string()),
+                    fs::file_size(fPathDiff),
+                    testManager.HashFile("TestFiles/testfile2.txt"));
 
   qDebug("testAddFileToList verifying duplicate goes to the same list");
 
@@ -236,36 +238,38 @@ void FileManagerTest::testAddDupeToAddFileToList() {
 }
 
 void FileManagerTest::testAddNonDupeToAddFileToList() {
-    // create test files to ensure its added correctly
-    fs::path fPath = fs::current_path() / "TestFiles/testfile1.txt";
-    FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
-                  fs::file_size(fPath),
-                  testManager.HashFile("TestFiles/testfile1.txt"));
+  // create test files to ensure its added correctly
+  fs::path fPath = fs::current_path() / "TestFiles/testfile1.txt";
+  FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
+                fs::file_size(fPath),
+                testManager.HashFile("TestFiles/testfile1.txt"));
 
-    fs::path fPathDupe = fs::current_path() / "TestFiles/testfile3.txt";
-    FileInfo fileDupe(
-        fPathDupe, QString::fromStdString(fPathDupe.extension().string()),
-        fs::file_size(fPathDupe), testManager.HashFile("TestFiles/testfile3.txt"));
+  fs::path fPathDupe = fs::current_path() / "TestFiles/testfile3.txt";
+  FileInfo fileDupe(fPathDupe,
+                    QString::fromStdString(fPathDupe.extension().string()),
+                    fs::file_size(fPathDupe),
+                    testManager.HashFile("TestFiles/testfile3.txt"));
 
-    fs::path fPathDiff = fs::current_path() / "TestFiles/testfile2.txt";
-    FileInfo fileDiff(
-        fPathDiff, QString::fromStdString(fPathDiff.extension().string()),
-        fs::file_size(fPathDiff), testManager.HashFile("TestFiles/testfile2.txt"));
+  fs::path fPathDiff = fs::current_path() / "TestFiles/testfile2.txt";
+  FileInfo fileDiff(fPathDiff,
+                    QString::fromStdString(fPathDiff.extension().string()),
+                    fs::file_size(fPathDiff),
+                    testManager.HashFile("TestFiles/testfile2.txt"));
 
-    qDebug(
-        "testAddFileToList verifying non-duplicate goes to different size list");
+  qDebug(
+      "testAddFileToList verifying non-duplicate goes to different size list");
 
-    // add different test file to list
-    testManager.addFileToList(fileDiff);
+  // add different test file to list
+  testManager.addFileToList(fileDiff);
 
-    // test files at different location
-    QVERIFY(testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]
-                .size() == 2);
-    QVERIFY(
-        testManager
-            .AllFilesByTypeSize[fileDiff.getFileType()][fileDiff.getFileSize()]
-            .size() == 1);
-    QVERIFY(file.getHash() != fileDiff.getHash());  // verify different hash
+  // test files at different location
+  QVERIFY(testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]
+              .size() == 2);
+  QVERIFY(
+      testManager
+          .AllFilesByTypeSize[fileDiff.getFileType()][fileDiff.getFileSize()]
+          .size() == 1);
+  QVERIFY(file.getHash() != fileDiff.getHash());  // verify different hash
 }
 
 void FileManagerTest::testProgressBarUpdate() {
@@ -357,16 +361,16 @@ void FileManagerTest::testFileInfoComparisonOperators() {
 }
 
 void FileManagerTest::testFileInfoDateCreated() {
-    qDebug("test date created is correct");
-    fs::path fPath = fs::current_path() / "TestFiles/testfile1.txt";
-    FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
-                  fs::file_size(fPath),
-                  testManager.HashFile("TestFiles/testfile1.txt"));
-    // get date for test
-    QFileInfo fileInfo(QString::fromStdString(fPath.string()));
-    QDateTime time = fileInfo.birthTime();
+  qDebug("test date created is correct");
+  fs::path fPath = fs::current_path() / "TestFiles/testfile1.txt";
+  FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
+                fs::file_size(fPath),
+                testManager.HashFile("TestFiles/testfile1.txt"));
+  // get date for test
+  QFileInfo fileInfo(QString::fromStdString(fPath.string()));
+  QDateTime time = fileInfo.birthTime();
 
-    QCOMPARE(file.getDate(), time);
+  QCOMPARE(file.getDate(), time);
 }
 
 void FileManagerTest::testTreeWidgetHierarchy() {
@@ -483,102 +487,99 @@ void FileManagerTest::testUncheckingAllChildSetsParentUncheck() {
 }
 
 void FileManagerTest::testWorkerProcessFiles() {
-    FileManager mockManager;
-    // Set teh TestFiles directory
-    QString testPath = "TestFiles/";
+  FileManager mockManager;
+  // Set teh TestFiles directory
+  QString testPath = "TestFiles/";
 
-    Worker worker(&mockManager, testPath);
-    // Detects if the worker signals (public slots) are emitted
-    QSignalSpy spyMax(&worker, &Worker::progressMaxUpdate);
-    QSignalSpy spyUpdate(&worker, &Worker::progressUpdate);
-    QSignalSpy spyComplete(&worker, &Worker::hashingComplete);
-    QSignalSpy spyFinish(&worker, &Worker::workerFinished);
+  Worker worker(&mockManager, testPath);
+  // Detects if the worker signals (public slots) are emitted
+  QSignalSpy spyMax(&worker, &Worker::progressMaxUpdate);
+  QSignalSpy spyUpdate(&worker, &Worker::progressUpdate);
+  QSignalSpy spyComplete(&worker, &Worker::hashingComplete);
+  QSignalSpy spyFinish(&worker, &Worker::workerFinished);
 
-    worker.processFiles();
+  worker.processFiles();
 
-    QCOMPARE(spyMax.count(), 1);          // Max progress emitted once
-    QVERIFY(spyUpdate.count() > 0);       // Progress updated multiple times
-    QCOMPARE(spyComplete.count(), 1);     // Hashing completed emitted once
-    QCOMPARE(spyFinish.count(), 1);       // Worker finished emitted once
+  QCOMPARE(spyMax.count(), 1);       // Max progress emitted once
+  QVERIFY(spyUpdate.count() > 0);    // Progress updated multiple times
+  QCOMPARE(spyComplete.count(), 1);  // Hashing completed emitted once
+  QCOMPARE(spyFinish.count(), 1);    // Worker finished emitted once
 }
 
-void FileManagerTest::testWorkerProcessFiles_EmptyDir(){
+void FileManagerTest::testWorkerProcessFiles_EmptyDir() {
+  FileManager mockManager;
+  QTemporaryDir tempDir;
+  QVERIFY(tempDir.isValid());  // Ensure temp dir is created
 
-    FileManager mockManager;
-    QTemporaryDir tempDir;
-    QVERIFY(tempDir.isValid());  // Ensure temp dir is created
+  Worker worker(&mockManager, tempDir.path());
 
-    Worker worker(&mockManager, tempDir.path());
+  QSignalSpy spyMax(&worker, &Worker::progressMaxUpdate);
+  QSignalSpy spyUpdate(&worker, &Worker::progressUpdate);
+  QSignalSpy spyComplete(&worker, &Worker::hashingComplete);
+  QSignalSpy spyFinish(&worker, &Worker::workerFinished);
 
-    QSignalSpy spyMax(&worker, &Worker::progressMaxUpdate);
-    QSignalSpy spyUpdate(&worker, &Worker::progressUpdate);
-    QSignalSpy spyComplete(&worker, &Worker::hashingComplete);
-    QSignalSpy spyFinish(&worker, &Worker::workerFinished);
+  worker.processFiles();
 
-    worker.processFiles();
-
-    QCOMPARE(spyMax.count(), 1);      // Should emit max progress (0 files)
-    QCOMPARE(spyUpdate.count(), 0);   // No updates since no files
-    QCOMPARE(spyComplete.count(), 1); // Should still complete
-    QCOMPARE(spyFinish.count(), 1);   // Should still finish
+  QCOMPARE(spyMax.count(), 1);       // Should emit max progress (0 files)
+  QCOMPARE(spyUpdate.count(), 0);    // No updates since no files
+  QCOMPARE(spyComplete.count(), 1);  // Should still complete
+  QCOMPARE(spyFinish.count(), 1);    // Should still finish
 }
 
 void FileManagerTest::testProcessFiles_InvalidPath() {
-    FileManager mockManager;
-    QString invalidPath = "fake/invalid/path/";
+  FileManager mockManager;
+  QString invalidPath = "fake/invalid/path/";
 
-    Worker worker(&mockManager, invalidPath);
+  Worker worker(&mockManager, invalidPath);
 
-    QSignalSpy spyMax(&worker, &Worker::progressMaxUpdate);
-    QSignalSpy spyUpdate(&worker, &Worker::progressUpdate);
-    QSignalSpy spyComplete(&worker, &Worker::hashingComplete);
-    QSignalSpy spyFinish(&worker, &Worker::workerFinished);
+  QSignalSpy spyMax(&worker, &Worker::progressMaxUpdate);
+  QSignalSpy spyUpdate(&worker, &Worker::progressUpdate);
+  QSignalSpy spyComplete(&worker, &Worker::hashingComplete);
+  QSignalSpy spyFinish(&worker, &Worker::workerFinished);
 
-    worker.processFiles();
+  worker.processFiles();
 
-    QCOMPARE(spyMax.count(), 1);  // Should still emit, but with 0 files
-    QCOMPARE(spyUpdate.count(), 0);  // No updates since no files
-    QCOMPARE(spyComplete.count(), 1); // Should still complete
-    QCOMPARE(spyFinish.count(), 1);  // Should still finish
+  QCOMPARE(spyMax.count(), 1);       // Should still emit, but with 0 files
+  QCOMPARE(spyUpdate.count(), 0);    // No updates since no files
+  QCOMPARE(spyComplete.count(), 1);  // Should still complete
+  QCOMPARE(spyFinish.count(), 1);    // Should still finish
 }
 
 void FileManagerTest::testWorkerThreadExec() {
-    FileManager mockManager;
-    QString testPath = "TestFiles/";
+  FileManager mockManager;
+  QString testPath = "TestFiles/";
 
+  Worker *worker = new Worker(&mockManager, testPath);
+  QThread *workerThread = new QThread();
 
-    Worker *worker = new Worker(&mockManager, testPath);
-    QThread *workerThread = new QThread();
+  worker->moveToThread(workerThread);
 
-    worker->moveToThread(workerThread);
+  QSignalSpy spyMax(worker, &Worker::progressMaxUpdate);
+  QSignalSpy spyUpdate(worker, &Worker::progressUpdate);
+  QSignalSpy spyComplete(worker, &Worker::hashingComplete);
+  QSignalSpy spyFinish(worker, &Worker::workerFinished);
 
-    QSignalSpy spyMax(worker, &Worker::progressMaxUpdate);
-    QSignalSpy spyUpdate(worker, &Worker::progressUpdate);
-    QSignalSpy spyComplete(worker, &Worker::hashingComplete);
-    QSignalSpy spyFinish(worker, &Worker::workerFinished);
+  // Start the thread and execute `processFiles` within it
+  connect(workerThread, &QThread::started, worker, &Worker::processFiles);
+  connect(worker, &Worker::workerFinished, workerThread, &QThread::quit);
+  connect(worker, &Worker::workerFinished, worker, &Worker::deleteLater);
 
-    // Start the thread and execute `processFiles` within it
-    connect(workerThread, &QThread::started, worker, &Worker::processFiles);
-    connect(worker, &Worker::workerFinished, workerThread, &QThread::quit);
-    connect(worker, &Worker::workerFinished, worker, &Worker::deleteLater);
+  workerThread->start();
 
-    workerThread->start();
+  // Use QEventLoop to wait for workerFinished
+  QEventLoop loop;
+  connect(worker, &Worker::workerFinished, &loop, &QEventLoop::quit);
+  loop.exec();
+  // This keeps the event loop running until workerFinished() is emitted
 
-    // Use QEventLoop to wait for workerFinished
-    QEventLoop loop;
-    connect(worker, &Worker::workerFinished, &loop, &QEventLoop::quit);
-    loop.exec();
-    // This keeps the event loop running until workerFinished() is emitted
+  QCOMPARE(spyMax.count(), 1);       // Should still emit max progress
+  QVERIFY(spyUpdate.count() > 0);    // Progress updates should happen
+  QCOMPARE(spyComplete.count(), 1);  // Completion signal must be emitted
+  QCOMPARE(spyFinish.count(), 1);    // Worker should signal it's done
 
-    QCOMPARE(spyMax.count(), 1);       // Should still emit max progress
-    QVERIFY(spyUpdate.count() > 0);    // Progress updates should happen
-    QCOMPARE(spyComplete.count(), 1);  // Completion signal must be emitted
-    QCOMPARE(spyFinish.count(), 1);    // Worker should signal it's done
-
-    workerThread->quit();
-    workerThread->wait(); // Ensure thread is properly closed
+  workerThread->quit();
+  workerThread->wait();  // Ensure thread is properly closed
 }
-
 
 // Cleans up after all test functions have executed
 void FileManagerTest::cleanupTestCase() {
