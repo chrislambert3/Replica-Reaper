@@ -10,6 +10,7 @@
 #include "../filemanager.hpp"
 #include "../FileInfo.hpp"
 #include "../mainwindow.hpp"
+#include "../worker.hpp"
 // add necessary includes here
 
 /*
