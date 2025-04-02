@@ -34,6 +34,8 @@ class MainWindow : public QMainWindow {
     void onDelAllBTN_clicked();
     void printCheckedItems();
     void closeEvent(QCloseEvent *event);
+    qint64 PythonAutoTestHelper(QString InputPath);
+    qint64 getDirectorySize(const QString& dirPath);
     ~MainWindow();
 
  private:

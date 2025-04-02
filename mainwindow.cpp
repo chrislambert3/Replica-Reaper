@@ -80,6 +80,7 @@ void MainWindow::onPushButtonClicked() {
   timer.start();
   qDebug() <<"Total amount files to cover: " << filePaths.size();
   // Loop through each file and hash it (prints to console for now)
+
   for (int i = 0; i < filePaths.size(); ++i) {
     // setup for FileInfo class
     fs::path fPath = filePaths[i].toStdString();
@@ -223,4 +224,48 @@ void MainWindow::printCheckedItems() {
       }
     }
   }
+}
+
+/* PythonAutoTestHelper() : runs the entire program. This
+ * function is used solely for testing the run time of the
+ * program. It is a slightly modified copy of OnPushButtonClicked()
+ *
+ * Input: A directory path to be run time tested
+ * output: Run time in milliseconds
+ */
+qint64 MainWindow::PythonAutoTestHelper(QString InputPath) {
+    qDebug() << "Button clicked!";
+
+    QString path = InputPath;
+    QStringList filePaths = manager->ListFiles(path);
+
+    QElapsedTimer timer;
+    timer.start();
+    qDebug() <<"Total amount files to cover: " << filePaths.size();
+    for (int i = 0; i < filePaths.size(); ++i) {
+        fs::path fPath = filePaths[i].toStdString();
+        FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
+                      fs::file_size(fPath));
+        manager->addFileToList(file);
+    }
+
+    return timer.elapsed();
+}
+/* getDirectorySize() : Helper function for
+ * finding the size of a directory
+ *
+ * Input: A directory path to be analyzed
+ * output: size of file in bytes
+ */
+qint64 MainWindow::getDirectorySize(const QString& dirPath) {
+    qint64 totalSize = 0;
+    QDirIterator it(dirPath, QDir::Files | QDir::Hidden | QDir::NoSymLinks, QDirIterator::Subdirectories);
+
+    while (it.hasNext()) {
+        it.next();
+        QFileInfo fileInfo(it.filePath());
+        totalSize += fileInfo.size();
+    }
+
+    return totalSize;
 }
