@@ -10,13 +10,11 @@
 #include <QDateTime>
 #include <QApplication>
 #include <QTreeWidget>
-#include <QThread>
 #include <filesystem>
 #include <iostream>
 #include <string>
 #include "filemanager.hpp"
 #include "FileInfo.hpp"
-#include "worker.hpp"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -35,9 +33,6 @@ class MainWindow : public QMainWindow {
     void onDelSelBTN_clicked();
     void onDelAllBTN_clicked();
     void printCheckedItems();
-    void setProgressMax(int max);
-    void updateProgress(int progress);
-    void handleHashingComplete(qint64 elapsedTime);
     void closeEvent(QCloseEvent *event);
     ~MainWindow();
 

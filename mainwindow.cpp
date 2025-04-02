@@ -21,6 +21,11 @@ MainWindow::MainWindow(QWidget *parent)
       0, QHeaderView::ResizeToContents);  // File path length fits conted
   ui->treeWidget->header()->setSectionResizeMode(
       1, QHeaderView::ResizeToContents);  // Date Modified fits content
+  // ui->treeWidget->setColumnWidth(0, 1000);
+  // ui->treeWidget->setMinimumWidth(1000);
+  // set specifation for the list tree
+  // ui->treeWidget->setColumnHidden(1,true);
+  // ui->treeWidget->setColumnWidth(2, 2); // Setting the second column to
 
   // Button Connections:
   // this links the button on the UI to the event function
@@ -57,51 +62,49 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 
 void MainWindow::onPushButtonClicked() {
   qDebug() << "Button clicked!";
-  // disable the button when clicked
-  ui->RunReaperBTN->setEnabled(false);
 
   QString path = manager->PromptDirectory(this);
   if (path == QString()) {
     qDebug("Please select a directory");
-    // re-enable button if no directory selectd
-    ui->RunReaperBTN->setEnabled(true);
     return;
   }
+  QStringList filePaths = manager->ListFiles(path);
 
   // Set up the progress bar
-  ui->progressBar->setValue(0);    // sets it to 0
-  ui->progressBar->setMinimum(0);  // Min value
+  ui->progressBar->setValue(0);                   // sets it to 0
+  ui->progressBar->setMinimum(0);                 // Min value
+  ui->progressBar->setMaximum(filePaths.size());  // # of files to hash
 
-  // This will set thr progress bar to "busy" mode
-  // The worker will reset the maximum after manager->ListFiles() is called
-  ui->progressBar->setMaximum(0);
+  // Set a timer for hashing all files
+  QElapsedTimer timer;
+  timer.start();
+  qDebug() <<"Total amount files to cover: " << filePaths.size();
+  // Loop through each file and hash it (prints to console for now)
+  for (int i = 0; i < filePaths.size(); ++i) {
+    // setup for FileInfo class
+    fs::path fPath = filePaths[i].toStdString();
+    FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
+                  fs::file_size(fPath));
+    // Push and sort FileInfo class into FileManager class
+    manager->addFileToList(file);  // passes in fileinfo
+    // std::cout << *manager;  // DEBUG *************
 
-  // Worker class handles duplicate detection algorithm
-  Worker *worker = new Worker(manager, path);
-  QThread *workerThread = new QThread(this);  // Create a thread for the worker
-  // Run the worker object in the thread
-  worker->moveToThread(workerThread);
-  // Sets the function to call for when thread starts
-  connect(workerThread, &QThread::started, worker, &Worker::processFiles);
-  // Sends max progress value from thread to UI
-  connect(worker, &Worker::progressMaxUpdate, this,
-          &MainWindow::setProgressMax);
-  // Sends the current progress bar value from thread to UI
-  connect(worker, &Worker::progressUpdate, this, &MainWindow::updateProgress);
-  // Handles what to do before exit (Shows Dupes to the UI)
-  connect(worker, &Worker::hashingComplete, this,
-          &MainWindow::handleHashingComplete);
-  // Deletes the resources when the thread is finished
-  connect(workerThread, &QThread::finished, workerThread,
-          &QThread::deleteLater);
+    if (i % 50 == 0 || i == filePaths.size() - 1) {  // Update every 50 files
+        ui->progressBar->setValue(i + 1);     // Update progress bar
+        // Process events to keep UI responsive (for progress bar)
+        QCoreApplication::processEvents();
+    }
+    // qDebug() << "File No: " << i;
+  }
 
-  // Connect the workerFinished signal to cleanup the thread
-  connect(worker, &Worker::workerFinished, workerThread,
-          &QThread::quit);  // Clean up thread
-  connect(worker, &Worker::workerFinished, worker,
-          &Worker::deleteLater);  // Clean up worker object
+  // std::cout << *manager;  // DEBUG *************
 
-  workerThread->start();
+  // returns elapsed time in milliseconds ( /1000 for seconds)
+  auto elapsedTime = timer.elapsed();
+  QString message =
+      "Took " + QString::number(elapsedTime / 1000.0, 'f') + " seconds";
+  manager->ShowNotification("Hashing Complete", message);
+  ShowDupesInUI(*manager);
 }
 
 // adds one file to qlistwidget
@@ -115,8 +118,7 @@ void MainWindow::ShowDupesInUI(const FileManager &f) {
   for (auto it = f.Dupes.begin(); it != f.Dupes.end(); ++it) {
     // Make a parent item for the list tree widget
     QTreeWidgetItem *parentHashItem = new QTreeWidgetItem(ui->treeWidget);
-    parentHashItem->setText(
-        0, QString::fromStdString(it->second.front().getFilePath().string()));
+    parentHashItem->setText(0, QString::fromStdString(it->second.front().getFilePath().string()));
     parentHashItem->setText(
         1, "{Placeholder}");  // Next column value to go under Date Modified
     parentHashItem->setCheckState(0, Qt::Unchecked);  // Default unchecked
@@ -221,20 +223,4 @@ void MainWindow::printCheckedItems() {
       }
     }
   }
-}
-void MainWindow::setProgressMax(int max) {
-  ui->progressBar->setMaximum(max);  // Update the progress bar maximum
-  QCoreApplication::processEvents();
-}
-void MainWindow::updateProgress(int progress) {
-  ui->progressBar->setValue(progress);
-  QCoreApplication::processEvents();
-}
-void MainWindow::handleHashingComplete(qint64 elapsedTime) {
-  QString message =
-      "Took " + QString::number(elapsedTime / 1000.0, 'f') + " seconds";
-  manager->ShowNotification("Hashing Complete", message);
-  ShowDupesInUI(*manager);
-  ui->RunReaperBTN->setEnabled(true);  // re-enable the button
-  // Handle the completion of hashing (notify the user, etc.)
 }
