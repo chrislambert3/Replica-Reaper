@@ -45,8 +45,8 @@ int main(int argc, char *argv[]) {
                     size = window.getDirectorySize(dir);
                     time = window.PythonAutoTestHelper(dir);
                     outFile << dir.toStdString() << std::endl;
-                    outFile << static_cast<long long>(time) << std::endl;
-                    outFile << static_cast<long long>(size) << std::endl;
+                    outFile << static_cast<int64_t>(time) << std::endl;
+                    outFile << static_cast<int64_t>(size) << std::endl;
             }
         }
         outFile.close();
