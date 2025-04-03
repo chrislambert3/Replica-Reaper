@@ -1,3 +1,4 @@
+import os
 import csv
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -30,6 +31,7 @@ def display_table(data):
     plt.title("Run Time Performance Analysis")
     plt.show()
 
-csv_file = "C:\\Users\\brade\\Documents\\GitHub\\Replica-Reaper\\build\\Desktop_Qt_6_8_2_MinGW_64_bit-Debug\\Performance.csv"
+#csv_file = "C:\\Users\\brade\\Documents\\GitHub\\Replica-Reaper\\build\\Desktop_Qt_6_8_2_MinGW_64_bit-Debug\\Performance.csv"
+csv_file = os.path.join("build", "Desktop_Qt_6_8_2_MinGW_64_bit-Debug", "Performance.csv")
 parsed_data = parse_csv(csv_file)
 display_table(parsed_data)

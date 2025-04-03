@@ -4,13 +4,13 @@
 #include <QString>
 #include <string>
 #include <fstream>
+#include <QStandardPaths>
 
 namespace fs = std::filesystem;
 
 //  Switch to 1 for testing
 //  currently hardcoded to Braden's machine
-#define DEBUG 0
-
+#define DEBUG 1
 
 int main(int argc, char *argv[]) {
     if(!DEBUG) {
@@ -20,25 +20,36 @@ int main(int argc, char *argv[]) {
         window.show();
         return app.exec();
     } else if(DEBUG) {
-        // This Section is for testing on Braden's Machine
+        // This Section is for testing on Machine
+
+        std::vector<QString> list = {
+            QStandardPaths::writableLocation(QStandardPaths::DownloadLocation),
+            QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation),
+            QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
+            QStandardPaths::writableLocation(QStandardPaths::PicturesLocation)
+        };
+
         QApplication app(argc, argv);
-        std::vector<std::string> list = {"C:\\Users\\brade\\Downloads", "C:\\Users\\brade\\Documents", "C:\\Users\\brade\\Desktop", "C:\\Users\\brade\\Pictures"};
-        std::ofstream outFile("Performance.csv", std::ios::app);  // Open file for writing (will create if it doesn't exist)
+        //std::vector<std::string> list = {"C:\\Users\\brade\\Downloads", "C:\\Users\\brade\\Documents", "C:\\Users\\brade\\Desktop", "C:\\Users\\brade\\Pictures"};
+        std::ofstream outFile("Performance.csv", std::ios::app); // // Open file for writing (will create if it doesn't exist)
         if (!outFile) {
             std::cerr << "Error opening the file!" << std::endl;
             return -1;  // Return with error if file cannot be opened
         }
-        for(int i = 0; i < list.size(); ++i){
-            qint64 time;
-            qint64 size;
-            QWidget widget;
-            MainWindow window(&widget);
-            size = window.getDirectorySize(QString::fromUtf8(list[i]));
-            time = window.PythonAutoTestHelper(QString::fromUtf8(list[i]));
-            outFile << list[i] << std::endl;
-            outFile << static_cast<long long>(time) << std::endl;
-            outFile << static_cast<long long>(size) << std::endl;
+        for(const auto& dir : list){
+            if (!dir.isEmpty()) {  // Ensure the directory path is valid
+                    qint64 time;
+                    qint64 size;
+                    QWidget widget;
+                    MainWindow window(&widget);
+                    size = window.getDirectorySize(dir);
+                    time = window.PythonAutoTestHelper(dir);
+                    outFile << dir.toStdString() << std::endl;
+                    outFile << static_cast<long long>(time) << std::endl;
+                    outFile << static_cast<long long>(size) << std::endl;
+            }
         }
+        outFile.close();
         return app.exec();
     }
 }
