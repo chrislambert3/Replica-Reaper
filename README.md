@@ -73,6 +73,16 @@ Replace `<QT-VERSION>` with whatever version number is in yout installation. Thi
 2. Run `UnitTests.exe` from the command prompt
 3. Results will print to the console 
 
+### Test run time using Auto.py/generate table
+1. Clone our main Github Repository
+2. Have the qtCreator IDE installed locally
+3. Open the project in qtCreator using Cmakelists.txt
+4. Confirm that "#define DEBUG" is set to 0 in main.cpp
+5. Build and run the program, this will test run time
+    on various generic folders
+6. Navigate to "Auto.py" in the repositories main folder
+7. Run "Auto.py" with your preferred interpreter.
+
 ## Contact Info
 
 - Braden Maillet: Graphics Engineer
