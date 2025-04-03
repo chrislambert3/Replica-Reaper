@@ -78,7 +78,7 @@ void MainWindow::onPushButtonClicked() {
   // Set a timer for hashing all files
   QElapsedTimer timer;
   timer.start();
-  qDebug() <<"Total amount files to cover: " << filePaths.size();
+  qDebug() << "Total amount files to cover: " << filePaths.size();
   // Loop through each file and hash it (prints to console for now)
 
   for (int i = 0; i < filePaths.size(); ++i) {
@@ -91,9 +91,9 @@ void MainWindow::onPushButtonClicked() {
     // std::cout << *manager;  // DEBUG *************
 
     if (i % 50 == 0 || i == filePaths.size() - 1) {  // Update every 50 files
-        ui->progressBar->setValue(i + 1);     // Update progress bar
-        // Process events to keep UI responsive (for progress bar)
-        QCoreApplication::processEvents();
+      ui->progressBar->setValue(i + 1);              // Update progress bar
+      // Process events to keep UI responsive (for progress bar)
+      QCoreApplication::processEvents();
     }
     // qDebug() << "File No: " << i;
   }
@@ -119,7 +119,8 @@ void MainWindow::ShowDupesInUI(const FileManager &f) {
   for (auto it = f.Dupes.begin(); it != f.Dupes.end(); ++it) {
     // Make a parent item for the list tree widget
     QTreeWidgetItem *parentHashItem = new QTreeWidgetItem(ui->treeWidget);
-    parentHashItem->setText(0, QString::fromStdString(it->second.front().getFilePath().string()));
+    parentHashItem->setText(
+        0, QString::fromStdString(it->second.front().getFilePath().string()));
     parentHashItem->setText(
         1, "{Placeholder}");  // Next column value to go under Date Modified
     parentHashItem->setCheckState(0, Qt::Unchecked);  // Default unchecked
@@ -234,22 +235,22 @@ void MainWindow::printCheckedItems() {
  * output: Run time in milliseconds
  */
 qint64 MainWindow::PythonAutoTestHelper(QString InputPath) {
-    qDebug() << "Button clicked!";
+  qDebug() << "Button clicked!";
 
-    QString path = InputPath;
-    QStringList filePaths = manager->ListFiles(path);
+  QString path = InputPath;
+  QStringList filePaths = manager->ListFiles(path);
 
-    QElapsedTimer timer;
-    timer.start();
-    qDebug() <<"Total amount files to cover: " << filePaths.size();
-    for (int i = 0; i < filePaths.size(); ++i) {
-        fs::path fPath = filePaths[i].toStdString();
-        FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
-                      fs::file_size(fPath));
-        manager->addFileToList(file);
-    }
+  QElapsedTimer timer;
+  timer.start();
+  qDebug() << "Total amount files to cover: " << filePaths.size();
+  for (int i = 0; i < filePaths.size(); ++i) {
+    fs::path fPath = filePaths[i].toStdString();
+    FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
+                  fs::file_size(fPath));
+    manager->addFileToList(file);
+  }
 
-    return timer.elapsed();
+  return timer.elapsed();
 }
 /* getDirectorySize() : Helper function for
  * finding the size of a directory
@@ -257,15 +258,16 @@ qint64 MainWindow::PythonAutoTestHelper(QString InputPath) {
  * Input: A directory path to be analyzed
  * output: size of file in bytes
  */
-qint64 MainWindow::getDirectorySize(const QString& dirPath) {
-    qint64 totalSize = 0;
-    QDirIterator it(dirPath, QDir::Files | QDir::Hidden | QDir::NoSymLinks, QDirIterator::Subdirectories);
+qint64 MainWindow::getDirectorySize(const QString &dirPath) {
+  qint64 totalSize = 0;
+  QDirIterator it(dirPath, QDir::Files | QDir::Hidden | QDir::NoSymLinks,
+                  QDirIterator::Subdirectories);
 
-    while (it.hasNext()) {
-        it.next();
-        QFileInfo fileInfo(it.filePath());
-        totalSize += fileInfo.size();
-    }
+  while (it.hasNext()) {
+    it.next();
+    QFileInfo fileInfo(it.filePath());
+    totalSize += fileInfo.size();
+  }
 
-    return totalSize;
+  return totalSize;
 }
