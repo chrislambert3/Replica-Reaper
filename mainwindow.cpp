@@ -68,6 +68,7 @@ void MainWindow::onPushButtonClicked() {
     qDebug("Please select a directory");
     return;
   }
+
   QStringList filePaths = manager->ListFiles(path);
 
   // Set up the progress bar

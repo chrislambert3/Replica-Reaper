@@ -34,6 +34,13 @@ QString FileManager::PromptDirectory(QWidget* parent) {
         return QString();
     }
 
+    QDir dir(filePath);
+    if (dir.isRoot()){
+        qDebug() << "Root directory selection is not allowed.";
+        return QString();
+    }
+
+
   qDebug() << "Selected File Path: " << filePath;
   return filePath;
 }
