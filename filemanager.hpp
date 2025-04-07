@@ -41,6 +41,7 @@ class FileManager : public QObject {
     void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
     void AddDupesToMap(std::list<FileInfo>& list);
     void UpdateHashes(std::list<FileInfo>& list);
+    void ClearData(){ AllFilesByTypeSize.clear(); Dupes.clear();}
     ~FileManager();
 
     friend std::ostream& operator<<(std::ostream& out,

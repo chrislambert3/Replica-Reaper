@@ -62,6 +62,8 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 
 void MainWindow::onPushButtonClicked() {
   qDebug() << "Button clicked!";
+  // clear the tree widget
+  ui->treeWidget->clear();
 
   QString path = manager->PromptDirectory(this);
   if (path == QString()) {
@@ -112,6 +114,8 @@ void MainWindow::onPushButtonClicked() {
   ShowDupesInUI(*manager);
   // re-enable the button
   ui->RunReaperBTN->setEnabled(true);
+  // clear the filemanager maps
+  manager->ClearData();
 }
 
 // adds one file to qlistwidget
