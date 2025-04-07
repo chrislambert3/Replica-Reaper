@@ -68,6 +68,9 @@ void MainWindow::onPushButtonClicked() {
     qDebug("Please select a directory");
     return;
   }
+  // disable the button before reaping
+  ui->RunReaperBTN->setEnabled(false);
+
 
   QStringList filePaths = manager->ListFiles(path);
 
@@ -107,6 +110,8 @@ void MainWindow::onPushButtonClicked() {
       "Took " + QString::number(elapsedTime / 1000.0, 'f') + " seconds";
   manager->ShowNotification("Hashing Complete", message);
   ShowDupesInUI(*manager);
+  // re-enable the button
+  ui->RunReaperBTN->setEnabled(true);
 }
 
 // adds one file to qlistwidget

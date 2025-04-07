@@ -13,7 +13,7 @@ namespace fs = std::filesystem;
 #define DEBUG 1
 
 int main(int argc, char* argv[]) {
-  if (!DEBUG) {
+  if (DEBUG) {
     QApplication app(argc, argv);
     QWidget widget;
     MainWindow window(&widget);

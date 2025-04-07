@@ -40,7 +40,6 @@ QString FileManager::PromptDirectory(QWidget* parent) {
         return QString();
     }
 
-
   qDebug() << "Selected File Path: " << filePath;
   return filePath;
 }
