@@ -37,6 +37,9 @@ class FileInfo {
     const QDateTime& getDate() const { return _DateCreated; }
     const QString& getFileType() const { return _FileType; }
     const uintmax_t& getFileSize() const { return _FileSize; }
+    QString getFileName() const {
+        return QString::fromStdString(_FilePath.filename().string());
+    }
 
     void setHash(const QByteArray& h) { _Hash = h; }
 

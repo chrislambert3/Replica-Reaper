@@ -12,9 +12,14 @@ MainWindow::MainWindow(QWidget *parent)
 
   // Tree Widget config:
   ui->treeWidget->setColumnCount(
-      2);  // Single column for file names (Poss another col for Date Modified)
+      3);  // Single column for file names
+  // Make columns resizable
+  ui->treeWidget->header()->setSectionResizeMode(0, QHeaderView::Interactive);  // Filename
+  ui->treeWidget->header()->setSectionResizeMode(1, QHeaderView::Interactive);  // File Path
+  ui->treeWidget->header()->setSectionResizeMode(2, QHeaderView::ResizeToContents);  // Date Modified
+  ui->treeWidget->header()->setMaximumSectionSize(300);
   ui->treeWidget->setHeaderLabels(
-      {"File Path", "Date Modified"});  // tree columns
+      {"Filename","File Path", "Date Modified"});  // tree columns
   ui->treeWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
   ui->treeWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
   ui->treeWidget->header()->setSectionResizeMode(
@@ -130,9 +135,10 @@ void MainWindow::ShowDupesInUI(const FileManager &f) {
     // Make a parent item for the list tree widget
     QTreeWidgetItem *parentHashItem = new QTreeWidgetItem(ui->treeWidget);
     parentHashItem->setText(
-        0, QString::fromStdString(it->second.front().getFilePath().string()));
+        0, it->second.front().getFileName());
     parentHashItem->setText(
-        1, "{Placeholder}");  // Next column value to go under Date Modified
+        1, QString::fromStdString(it->second.front().getFilePath().string()));  // Next column value to go under FilePath
+    parentHashItem->setText(2, it->second.front().getDate().toString());
     parentHashItem->setCheckState(0, Qt::Unchecked);  // Default unchecked
     // add the parent item to tree
     ui->treeWidget->addTopLevelItem(parentHashItem);
@@ -142,12 +148,18 @@ void MainWindow::ShowDupesInUI(const FileManager &f) {
       // Logic for adding to list Tree:
       // make a a child for the parent hash item
       QTreeWidgetItem *childItem = new QTreeWidgetItem(parentHashItem);
-      childItem->setText(0, out);  // set the filepath
+      childItem->setText(0, a.getFileName());  // set the filename
       childItem->setText(
-          1, QString("{Date Modified}"));  // Next column value for child item
+          1, out); // sets the filepath column
+      childItem->setText(2,a.getDate().toString());
       childItem->setCheckState(0, Qt::Unchecked);
     }
   }
+  ui->treeWidget->header()->setSectionResizeMode(0, QHeaderView::ResizeToContents);  // Filename
+  ui->treeWidget->header()->setSectionResizeMode(1, QHeaderView::Interactive);  // File Path
+  ui->treeWidget->header()->setSectionResizeMode(2, QHeaderView::ResizeToContents);  // Date Modified
+  ui->treeWidget->setColumnWidth(1,200);
+  ui->treeWidget->setColumnWidth(2,150);
 }
 
 // Function to manage parent-child checkbox behavior

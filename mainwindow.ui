@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>869</width>
+    <height>653</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,8 +20,8 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>0</x>
-      <y>0</y>
+      <x>10</x>
+      <y>-10</y>
       <width>121</width>
       <height>51</height>
      </rect>
@@ -33,7 +33,7 @@
    <widget class="QProgressBar" name="progressBar">
     <property name="geometry">
      <rect>
-      <x>140</x>
+      <x>210</x>
       <y>0</y>
       <width>321</width>
       <height>41</height>
@@ -43,102 +43,11 @@
      <number>24</number>
     </property>
    </widget>
-   <widget class="QPushButton" name="RunReaperBTN">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>50</y>
-      <width>121</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Run the Reaper</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="DelAllBTN">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>90</y>
-      <width>121</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Delete all dupes</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="DelSelBTN">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>130</y>
-      <width>121</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Delete selected dupes</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="SelDirBTN">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>170</y>
-      <width>121</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Select Directory for Analysis</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="HowUseBTN">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>250</y>
-      <width>121</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>How to use</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="SettBTN">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>290</y>
-      <width>121</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Settings</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="SelDirBTN_2">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>210</y>
-      <width>121</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Select File for Cross Ref.</string>
-    </property>
-   </widget>
    <widget class="QCheckBox" name="checkBox">
     <property name="geometry">
      <rect>
-      <x>480</x>
-      <y>10</y>
+      <x>680</x>
+      <y>0</y>
       <width>161</width>
       <height>26</height>
      </rect>
@@ -150,9 +59,9 @@
    <widget class="QTreeWidget" name="treeWidget">
     <property name="geometry">
      <rect>
-      <x>130</x>
-      <y>50</y>
-      <width>651</width>
+      <x>10</x>
+      <y>120</y>
+      <width>851</width>
       <height>491</height>
      </rect>
     </property>
@@ -162,13 +71,60 @@
      </property>
     </column>
    </widget>
+   <widget class="QWidget" name="horizontalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>40</y>
+      <width>865</width>
+      <height>80</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="RunReaperBTN">
+       <property name="text">
+        <string>Run the Reaper</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="DelAllBTN">
+       <property name="text">
+        <string>Delete all dupes</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="DelSelBTN">
+       <property name="text">
+        <string>Delete selected dupes</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="HowUseBTN">
+       <property name="text">
+        <string>How to use</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="SettBTN">
+       <property name="text">
+        <string>Settings</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>869</width>
      <height>25</height>
     </rect>
    </property>
