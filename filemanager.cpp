@@ -29,16 +29,16 @@ QString FileManager::PromptDirectory(QWidget* parent) {
       parent, "Open a Directory", QDir::homePath(),
       QFileDialog::DontResolveSymlinks);
 
-    if (filePath.isEmpty()) {
-      qDebug() << "No directory selected";
-        return QString();
-    }
+  if (filePath.isEmpty()) {
+    qDebug() << "No directory selected";
+    return QString();
+  }
 
-    QDir dir(filePath);
-    if (dir.isRoot()){
-        qDebug() << "Root directory selection is not allowed.";
-        return QString();
-    }
+  QDir dir(filePath);
+  if (dir.isRoot()) {
+    qDebug() << "Root directory selection is not allowed.";
+    return QString();
+  }
 
   qDebug() << "Selected File Path: " << filePath;
   return filePath;
@@ -85,8 +85,10 @@ QStringList FileManager::ListFiles(const QString& directoryPath) {
 }
 
 void FileManager::addFileToList(FileInfo& file) {
-  auto& sizeMap = AllFilesByTypeSize[file.getFileType()];  // list of same size file types
-  auto& fileList = sizeMap[file.getFileSize()];  // list of same-sized file infos
+  auto& sizeMap =
+      AllFilesByTypeSize[file.getFileType()];  // list of same size file types
+  auto& fileList =
+      sizeMap[file.getFileSize()];  // list of same-sized file infos
 
   fileList.push_back(file);
 
@@ -95,50 +97,50 @@ void FileManager::addFileToList(FileInfo& file) {
 }
 
 void FileManager::CheckAndAddDupes(std::list<FileInfo>& list) {
-    // Ensure each file in the list has a valid hash
-    UpdateHashes(list);
+  // Ensure each file in the list has a valid hash
+  UpdateHashes(list);
 
-    list.sort();
+  list.sort();
 
-    // std::unordered_set<QByteArray> HashList = StoreUniqueHashes(list);
+  // std::unordered_set<QByteArray> HashList = StoreUniqueHashes(list);
 
-    AddDupesToMap(list);
+  AddDupesToMap(list);
 }
 
 void FileManager::UpdateHashes(std::list<FileInfo>& list) {
-    for (auto& f : list) {
-        if (f.getHash() == DEAD_HASH)
-            f.setHash(HashFile(QString::fromStdString(f.getFilePath().string())));
-    }
+  for (auto& f : list) {
+    if (f.getHash() == DEAD_HASH)
+      f.setHash(HashFile(QString::fromStdString(f.getFilePath().string())));
+  }
 }
 
 void FileManager::AddDupesToMap(std::list<FileInfo>& list) {
-    // Hash map implementation:
-    std::unordered_map<QByteArray, std::list<FileInfo>> hashToFilesMap;
+  // Hash map implementation:
+  std::unordered_map<QByteArray, std::list<FileInfo>> hashToFilesMap;
 
-    // convert the FileInfo list into a map with the file hash as the key
-    for (auto& file : list) {
-        // hash key
-        const QByteArray& hash = file.getHash();
-        hashToFilesMap[hash].push_back(file);
+  // convert the FileInfo list into a map with the file hash as the key
+  for (auto& file : list) {
+    // hash key
+    const QByteArray& hash = file.getHash();
+    hashToFilesMap[hash].push_back(file);
+  }
+  // Iterate through the of hash keys and
+  // add only duplicates (lists with more than 1 file)
+  for (auto& [hash, dList] : hashToFilesMap) {
+    if (dList.size() > 1) {
+      // move original item to 1st element in list
+      auto earliest = std::min_element(
+          dList.begin(), dList.end(), [](const FileInfo& l, const FileInfo& r) {
+            return l.getDate() < r.getDate();
+          });
+
+      if (earliest != dList.end()) {
+        dList.splice(dList.begin(), dList, earliest);
+      }
+
+      Dupes[hash] = dList;
     }
-    // Iterate through the of hash keys and
-    // add only duplicates (lists with more than 1 file)
-    for (auto& [hash, dList] : hashToFilesMap) {
-        if (dList.size() > 1) {
-            // move original item to 1st element in list
-            auto earliest = std::min_element(dList.begin(), dList.end(),
-                                                [] (const FileInfo& l, const FileInfo& r) {
-                return l.getDate() < r.getDate();
-            });
-
-            if (earliest != dList.end()) {
-                dList.splice(dList.begin(), dList, earliest);
-            }
-
-            Dupes[hash] = dList;
-        }
-    }
+  }
 }
 
 std::ostream& operator<<(std::ostream& out, const FileManager& f) {

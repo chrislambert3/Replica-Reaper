@@ -11,15 +11,17 @@ MainWindow::MainWindow(QWidget *parent)
   ui->checkBox->setChecked(true);
 
   // Tree Widget config:
-  ui->treeWidget->setColumnCount(
-      3);  // Single column for file names
+  ui->treeWidget->setColumnCount(3);  // Single column for file names
   // Make columns resizable
-  ui->treeWidget->header()->setSectionResizeMode(0, QHeaderView::Interactive);  // Filename
-  ui->treeWidget->header()->setSectionResizeMode(1, QHeaderView::Interactive);  // File Path
-  ui->treeWidget->header()->setSectionResizeMode(2, QHeaderView::ResizeToContents);  // Date Modified
+  ui->treeWidget->header()->setSectionResizeMode(
+      0, QHeaderView::Interactive);  // Filename
+  ui->treeWidget->header()->setSectionResizeMode(
+      1, QHeaderView::Interactive);  // File Path
+  ui->treeWidget->header()->setSectionResizeMode(
+      2, QHeaderView::ResizeToContents);  // Date Modified
   ui->treeWidget->header()->setMaximumSectionSize(300);
   ui->treeWidget->setHeaderLabels(
-      {"Filename","File Path", "Date Modified"});  // tree columns
+      {"Filename", "File Path", "Date Modified"});  // tree columns
   ui->treeWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
   ui->treeWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
   ui->treeWidget->header()->setSectionResizeMode(
@@ -78,7 +80,6 @@ void MainWindow::onPushButtonClicked() {
   // disable the button before reaping
   ui->RunReaperBTN->setEnabled(false);
 
-
   QStringList filePaths = manager->ListFiles(path);
 
   // Set up the progress bar
@@ -134,10 +135,12 @@ void MainWindow::ShowDupesInUI(const FileManager &f) {
   for (auto it = f.Dupes.begin(); it != f.Dupes.end(); ++it) {
     // Make a parent item for the list tree widget
     QTreeWidgetItem *parentHashItem = new QTreeWidgetItem(ui->treeWidget);
+    parentHashItem->setText(0, it->second.front().getFileName());
     parentHashItem->setText(
-        0, it->second.front().getFileName());
-    parentHashItem->setText(
-        1, QString::fromStdString(it->second.front().getFilePath().string()));  // Next column value to go under FilePath
+        1, QString::fromStdString(
+               it->second.front()
+                   .getFilePath()
+                   .string()));  // Next column value to go under FilePath
     parentHashItem->setText(2, it->second.front().getDate().toString());
     parentHashItem->setCheckState(0, Qt::Unchecked);  // Default unchecked
     // add the parent item to tree
@@ -149,17 +152,19 @@ void MainWindow::ShowDupesInUI(const FileManager &f) {
       // make a a child for the parent hash item
       QTreeWidgetItem *childItem = new QTreeWidgetItem(parentHashItem);
       childItem->setText(0, a.getFileName());  // set the filename
-      childItem->setText(
-          1, out); // sets the filepath column
-      childItem->setText(2,a.getDate().toString());
+      childItem->setText(1, out);              // sets the filepath column
+      childItem->setText(2, a.getDate().toString());
       childItem->setCheckState(0, Qt::Unchecked);
     }
   }
-  ui->treeWidget->header()->setSectionResizeMode(0, QHeaderView::ResizeToContents);  // Filename
-  ui->treeWidget->header()->setSectionResizeMode(1, QHeaderView::Interactive);  // File Path
-  ui->treeWidget->header()->setSectionResizeMode(2, QHeaderView::ResizeToContents);  // Date Modified
-  ui->treeWidget->setColumnWidth(1,200);
-  ui->treeWidget->setColumnWidth(2,150);
+  ui->treeWidget->header()->setSectionResizeMode(
+      0, QHeaderView::ResizeToContents);  // Filename
+  ui->treeWidget->header()->setSectionResizeMode(
+      1, QHeaderView::Interactive);  // File Path
+  ui->treeWidget->header()->setSectionResizeMode(
+      2, QHeaderView::ResizeToContents);  // Date Modified
+  ui->treeWidget->setColumnWidth(1, 200);
+  ui->treeWidget->setColumnWidth(2, 150);
 }
 
 // Function to manage parent-child checkbox behavior
