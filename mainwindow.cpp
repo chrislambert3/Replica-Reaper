@@ -6,6 +6,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), manager(new FileManager()) {
   ui->setupUi(this);
   ui->progressBar->setValue(0);
+  this->setWindowTitle("Replica Reaper");
   manager->setMainWindow(this);
   // set the "Run in background" checkbox to true
   ui->checkBox->setChecked(true);
