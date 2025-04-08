@@ -70,6 +70,12 @@
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QPushButton" name="RunReaperBTN">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
        <property name="text">
         <string>Run the Reaper</string>
        </property>
@@ -77,6 +83,12 @@
      </item>
      <item>
       <widget class="QPushButton" name="DelAllBTN">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
        <property name="text">
         <string>Delete all dupes</string>
        </property>
@@ -84,6 +96,12 @@
      </item>
      <item>
       <widget class="QPushButton" name="DelSelBTN">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
        <property name="text">
         <string>Delete selected dupes</string>
        </property>
@@ -91,6 +109,12 @@
      </item>
      <item>
       <widget class="QPushButton" name="HowUseBTN">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
        <property name="text">
         <string>How to use</string>
        </property>
@@ -98,6 +122,12 @@
      </item>
      <item>
       <widget class="QPushButton" name="SettBTN">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
        <property name="text">
         <string>Settings</string>
        </property>
