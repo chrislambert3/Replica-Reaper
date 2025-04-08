@@ -215,12 +215,13 @@ void MainWindow::onTreeItemChanged(QTreeWidgetItem *item) {
 
 void MainWindow::onDelSelBTN_clicked() {
   // prints selected to console for now
-  //printCheckedItems();
+  // printCheckedItems();
   auto files = getCheckedItems();
   // dont show the dialoge if no files are selected
   if (files.empty()) {
-      QMessageBox::information(this, "No Selection", "Please select at least one file to delete.");
-      return;
+    QMessageBox::information(this, "No Selection",
+                             "Please select at least one file to delete.");
+    return;
   }
   showDeleteConfirmation(files);
 }
@@ -267,7 +268,7 @@ list<pair<QString, QString>> MainWindow::getCheckedItems() {
         auto filename = childItem->text(0);
         auto filepath = childItem->text(1);
         // add pairs to files
-        std::pair<QString,QString> pair(filename, filepath);
+        std::pair<QString, QString> pair(filename, filepath);
         files.push_back(pair);
       }
     }
@@ -331,53 +332,59 @@ void MainWindow::setBackgroundState(bool state) {
   this->backgroundCheck = state;
 }
 
-void MainWindow::showDeleteConfirmation(const list<pair<QString, QString>>& files) {
-    QDialog dialog(this);
-    dialog.setWindowTitle("Confirm Deletion");
-    dialog.setModal(true);
-    dialog.setMinimumSize(400, 300);
+void MainWindow::showDeleteConfirmation(
+    const list<pair<QString, QString>> &files) {
+  QDialog dialog(this);
+  dialog.setWindowTitle("Confirm Deletion");
+  dialog.setModal(true);
+  dialog.setMinimumSize(400, 300);
 
-    QVBoxLayout* layout = new QVBoxLayout(&dialog);
+  QVBoxLayout *layout = new QVBoxLayout(&dialog);
 
-    QLabel* label = new QLabel("Are you sure you want to delete the following files?");
-    layout->addWidget(label);
+  QLabel *label =
+      new QLabel("Are you sure you want to delete the following files?");
+  layout->addWidget(label);
 
-    QListWidget* listWidget = new QListWidget();
-    // Only add the first element of each pair (filename)
+  QListWidget *listWidget = new QListWidget();
+  // Only add the first element of each pair (filename)
+  for (const auto &filePair : files) {
+    listWidget->addItem(filePair.first);
+  }
+  layout->addWidget(listWidget);
+
+  QDialogButtonBox *buttonBox =
+      new QDialogButtonBox(QDialogButtonBox::Yes | QDialogButtonBox::No);
+  layout->addWidget(buttonBox);
+
+  QObject::connect(buttonBox, &QDialogButtonBox::accepted, &dialog,
+                   &QDialog::accept);
+  QObject::connect(buttonBox, &QDialogButtonBox::rejected, &dialog,
+                   &QDialog::reject);
+
+  if (dialog.exec() == QDialog::Accepted) {
+    // temperary "success flag"
+    QMessageBox::information(this, "Success",
+                             "Selected files deleted successfully.");
+    // Delete files
+    // Deleting File Logic:
+    /*
+    QStringList failedDeletions;
+
     for (const auto& filePair : files) {
-        listWidget->addItem(filePair.first);
-    }
-    layout->addWidget(listWidget);
-
-    QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Yes | QDialogButtonBox::No);
-    layout->addWidget(buttonBox);
-
-    QObject::connect(buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
-    QObject::connect(buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-
-    if (dialog.exec() == QDialog::Accepted) {
-        // temperary "success flag"
-        QMessageBox::information(this, "Success", "Selected files deleted successfully.");
-        // Delete files
-        // Deleting File Logic:
-        /*
-        QStringList failedDeletions;
-
-        for (const auto& filePair : files) {
-            QString fullPath = filePair.second;
-            QFile file(fullPath);
-            if (!file.remove()) {
-                failedDeletions.append(fullPath);
-            }
+        QString fullPath = filePair.second;
+        QFile file(fullPath);
+        if (!file.remove()) {
+            failedDeletions.append(fullPath);
         }
-
-        if (!failedDeletions.isEmpty()) {
-            QString errorMsg = "Failed to delete the following files:\n" + failedDeletions.join("\n");
-            QMessageBox::warning(this, "Deletion Failed", errorMsg);
-        } else {
-            QMessageBox::information(this, "Success", "Selected files deleted successfully.");
-        }*/
-    } else {
-        // Canceled
     }
+
+    if (!failedDeletions.isEmpty()) {
+        QString errorMsg = "Failed to delete the following files:\n" +
+    failedDeletions.join("\n"); QMessageBox::warning(this, "Deletion Failed",
+    errorMsg); } else { QMessageBox::information(this, "Success", "Selected
+    files deleted successfully.");
+    }*/
+  } else {
+    // Canceled
+  }
 }
