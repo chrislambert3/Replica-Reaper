@@ -10,12 +10,17 @@
 #include <QDateTime>
 #include <QApplication>
 #include <QTreeWidget>
+#include <QDialogButtonBox>
+#include <QMessageBox>
 #include <filesystem>
 #include <iostream>
 #include <string>
 #include "filemanager.hpp"
 #include "FileInfo.hpp"
 #include "settings.hpp"
+
+using std::list;
+using std::pair;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -30,10 +35,11 @@ class MainWindow : public QMainWindow {
   explicit MainWindow(QWidget *parent = nullptr);
   void onPushButtonClicked();
   void ShowDupesInUI(const FileManager &f);
+  void showDeleteConfirmation(const list<pair<QString, QString>>& files);
   void onTreeItemChanged(QTreeWidgetItem *item);
   void onDelSelBTN_clicked();
   void onDelAllBTN_clicked();
-  void printCheckedItems();
+  list<pair<QString, QString>> getCheckedItems();
   void setBackgroundState(bool state);
   void closeEvent(QCloseEvent *event);
   qint64 PythonAutoTestHelper(QString InputPath);
