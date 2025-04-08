@@ -24,28 +24,28 @@ class MainWindow;
 QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow {
-    Q_OBJECT
+  Q_OBJECT
 
  public:
-    explicit MainWindow(QWidget *parent = nullptr);
-    void onPushButtonClicked();
-    void ShowDupesInUI(const FileManager& f);
-    void onTreeItemChanged(QTreeWidgetItem *item);
-    void onDelSelBTN_clicked();
-    void onDelAllBTN_clicked();
-    void printCheckedItems();
-    void setBackgroundState(bool state);
-    void closeEvent(QCloseEvent *event);
-    qint64 PythonAutoTestHelper(QString InputPath);
-    qint64 getDirectorySize(const QString& dirPath);
-    ~MainWindow();
+  explicit MainWindow(QWidget *parent = nullptr);
+  void onPushButtonClicked();
+  void ShowDupesInUI(const FileManager &f);
+  void onTreeItemChanged(QTreeWidgetItem *item);
+  void onDelSelBTN_clicked();
+  void onDelAllBTN_clicked();
+  void printCheckedItems();
+  void setBackgroundState(bool state);
+  void closeEvent(QCloseEvent *event);
+  qint64 PythonAutoTestHelper(QString InputPath);
+  qint64 getDirectorySize(const QString &dirPath);
+  ~MainWindow();
 
-private slots:
-    void on_SettBTN_clicked();
+ private slots:
+  void on_SettBTN_clicked();
 
-private:
-    Ui::MainWindow *ui;
-    FileManager *manager;
-    bool backgroundCheck;
+ private:
+  Ui::MainWindow *ui;
+  FileManager *manager;
+  bool backgroundCheck;
 };
 #endif /* MAINWINDOW_HPP */

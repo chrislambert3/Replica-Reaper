@@ -95,7 +95,8 @@ void MainWindow::onPushButtonClicked() {
   timer.start();
   qDebug() << "Total amount files to cover: " << filePaths.size();
   // Show the total amount in the status bar
-  ui->statusbar->showMessage("Found " + QString::number(filePaths.size()) + " files");
+  ui->statusbar->showMessage("Found " + QString::number(filePaths.size()) +
+                             " files");
   // Loop through each file and hash it (prints to console for now)
 
   for (int i = 0; i < filePaths.size(); ++i) {
@@ -304,15 +305,13 @@ qint64 MainWindow::getDirectorySize(const QString &dirPath) {
   return totalSize;
 }
 
-void MainWindow::on_SettBTN_clicked()
-{
-    Settings* settings = new Settings(this);
-    settings->setState(this->backgroundCheck);
-    settings->setModal(true);
-    settings->exec();
+void MainWindow::on_SettBTN_clicked() {
+  Settings *settings = new Settings(this);
+  settings->setState(this->backgroundCheck);
+  settings->setModal(true);
+  settings->exec();
 }
 
-void MainWindow::setBackgroundState(bool state){
-    this->backgroundCheck = state;
+void MainWindow::setBackgroundState(bool state) {
+  this->backgroundCheck = state;
 }
-
