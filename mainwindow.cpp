@@ -80,6 +80,8 @@ void MainWindow::onPushButtonClicked() {
   }
   // disable the button before reaping
   ui->RunReaperBTN->setEnabled(false);
+  // set the status on the status bar
+  ui->statusbar->showMessage("Scanning Files...");
 
   QStringList filePaths = manager->ListFiles(path);
 
@@ -92,6 +94,8 @@ void MainWindow::onPushButtonClicked() {
   QElapsedTimer timer;
   timer.start();
   qDebug() << "Total amount files to cover: " << filePaths.size();
+  // Show the total amount in the status bar
+  ui->statusbar->showMessage("Found " + QString::number(filePaths.size()) + " files");
   // Loop through each file and hash it (prints to console for now)
 
   for (int i = 0; i < filePaths.size(); ++i) {
