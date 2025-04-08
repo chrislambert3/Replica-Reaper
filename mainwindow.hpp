@@ -15,6 +15,7 @@
 #include <string>
 #include "filemanager.hpp"
 #include "FileInfo.hpp"
+#include "settings.hpp"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -33,13 +34,18 @@ class MainWindow : public QMainWindow {
     void onDelSelBTN_clicked();
     void onDelAllBTN_clicked();
     void printCheckedItems();
+    void setBackgroundState(bool state);
     void closeEvent(QCloseEvent *event);
     qint64 PythonAutoTestHelper(QString InputPath);
     qint64 getDirectorySize(const QString& dirPath);
     ~MainWindow();
 
- private:
+private slots:
+    void on_SettBTN_clicked();
+
+private:
     Ui::MainWindow *ui;
     FileManager *manager;
+    bool backgroundCheck;
 };
 #endif /* MAINWINDOW_HPP */
