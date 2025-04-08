@@ -258,17 +258,17 @@ list<pair<QString, QString>> MainWindow::getCheckedItems() {
     // iterate through child items of the checked parent
     for (int j = 0; j < parentItem->childCount(); ++j) {
       QTreeWidgetItem *childItem = parentItem->child(j);
-      auto filename = childItem->text(0);
-      auto filepath = childItem->text(1);
-      // add pairs to files
-      std::pair<QString,QString> pair(filename, filepath);
-      files.push_back(pair);
 
       // Skip if the child is unchecked (for partially checked cases)
       if (childItem->checkState(0) == Qt::Unchecked) {
         continue;
       } else {  // child is checked
         qDebug() << "Checked Item:" << childItem->text(0);
+        auto filename = childItem->text(0);
+        auto filepath = childItem->text(1);
+        // add pairs to files
+        std::pair<QString,QString> pair(filename, filepath);
+        files.push_back(pair);
       }
     }
   }
