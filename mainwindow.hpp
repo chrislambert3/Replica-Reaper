@@ -18,6 +18,7 @@
 #include "filemanager.hpp"
 #include "FileInfo.hpp"
 #include "settings.hpp"
+#include "tutorial.hpp"
 
 using std::list;
 using std::pair;
@@ -48,10 +49,12 @@ class MainWindow : public QMainWindow {
 
  private slots:
   void on_SettBTN_clicked();
+  void on_HowUseBTN_clicked();
 
  private:
   Ui::MainWindow *ui;
   FileManager *manager;
+  Tutorial *tutorial = nullptr;
   bool backgroundCheck;
 };
 #endif /* MAINWINDOW_HPP */

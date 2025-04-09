@@ -388,3 +388,14 @@ void MainWindow::showDeleteConfirmation(
     // Canceled
   }
 }
+
+void MainWindow::on_HowUseBTN_clicked()
+{
+    if(!tutorial){
+        tutorial = new Tutorial(this);
+    }
+    tutorial->show();
+    tutorial->raise();  // Bring to front
+    tutorial->activateWindow(); // Give focus
+}
+
