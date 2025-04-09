@@ -181,9 +181,9 @@ void FileManager::onTrayIconActivated(
       ui->show();            // Show the window if hidden
       ui->raise();           // Bring the window to the front
       ui->activateWindow();  // Give the window focus
-    }else{
-        ui->raise();
-        ui->activateWindow();
+    } else {
+      ui->raise();
+      ui->activateWindow();
     }
   }
 }
