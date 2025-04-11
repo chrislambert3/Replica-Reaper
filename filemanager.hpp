@@ -1,5 +1,4 @@
 // Copyright 2025 Replica Reaper
-#pragma once
 #ifndef FILEMANAGER_HPP
 #define FILEMANAGER_HPP
 #include <QString>
@@ -35,18 +34,24 @@ class FileManager : public QObject {
     QStringList ListFiles(const QString& directoryPath);
     void AddToDupes(const FileInfo& File);
     void ShowNotification(const QString& title, const QString& message);
-    void addFileToList(FileInfo& file);
+    void addFileToTypeSizeMap(FileInfo& file);
     void CheckAndAddDupes(std::list<FileInfo>& list);
-    void setMainWindow(QMainWindow *ui);
+    void setMainWindow(QMainWindow* ui);
     void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
-    void AddDupesToMap(std::list<FileInfo>& list);
     void UpdateHashes(std::list<FileInfo>& list);
+    void ClearData() {
+        AllFilesByTypeSize.clear();
+        Dupes.clear();
+    }
     ~FileManager();
 
-    friend std::ostream& operator<<(std::ostream& out,
-                const FileManager& f);
+    friend std::ostream& operator<<(std::ostream& out, const FileManager& f);
 
-    unordered_map<QString, unordered_map<uintmax_t, std::list<FileInfo>>> AllFilesByTypeSize;
+    // Map filtered by file type and then file size
+    // unordered_map<QString, unordered_map<uintmax_t, std::list<FileInfo>>>
+    // AllFilesByTypeSize; Holds list of list of duplicates no particular order
+    unordered_map<QString, unordered_map<uintmax_t, std::list<FileInfo>>>
+        AllFilesByTypeSize;
     unordered_map<QByteArray, std::list<FileInfo>> Dupes;
 
  private:
@@ -54,10 +59,6 @@ class FileManager : public QObject {
     QAction* quitAction;
     QMenu* trayMenu;
     QMainWindow* ui;
-    // Map filtered by file type and then file size
-    // unordered_map<QString, unordered_map<uintmax_t, std::list<FileInfo>>> AllFilesByTypeSize;
-    // Holds list of list of duplicates
-    // no particular order
 };
 
 #endif /* FILEMANAGER_HPP */
