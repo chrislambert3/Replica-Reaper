@@ -1,9 +1,4 @@
 // Copyright 2025 Replica Reaper
-#include <QStandardPaths>
-#include <QString>
-#include <vector>
-#include <string>
-#include <fstream>
 #include "mainwindow.hpp"
 
 namespace fs = std::filesystem;

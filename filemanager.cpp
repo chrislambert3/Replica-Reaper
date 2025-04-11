@@ -23,7 +23,14 @@ FileManager::FileManager(QObject* parent)
     this->trayIcon->show();
 }
 FileManager::~FileManager() {}
-
+/* PromptDirectory(): Prompts a request to the user
+ * to select a directory to be reaped. Is called
+ * within the MainWindow class. Specifically member
+ * function OnReaperButtonClicked(mainwindow.cpp).
+ *
+ * input: the FileManager member value within mainwindow.hpp "manager"
+ * output: QString of the directory selected
+ */
 QString FileManager::PromptDirectory(QWidget* parent) {
     QString filePath = QFileDialog::getExistingDirectory(
         parent, "Open a Directory", QDir::homePath(),
@@ -44,6 +51,12 @@ QString FileManager::PromptDirectory(QWidget* parent) {
     return filePath;
 }
 
+/* HashFile(): Hashes a single file using sha256
+ *
+ * input: file location (QString)
+ * output: Hash of the specified file.
+ *        -returns QByteArray("") in case of error.
+ */
 QByteArray FileManager::HashFile(QString fileName) {
     // Opens the file
     QFile file(fileName);
@@ -65,6 +78,12 @@ QByteArray FileManager::HashFile(QString fileName) {
     return result;
 }
 
+/* ListFiles(): collects all files in a directory and
+ * its subdirectories.
+ *
+ * input: A file directory location
+ * output: A QStringList of every file in the input Directory
+ */
 QStringList FileManager::ListFiles(const QString& directoryPath) {
     QDir dir(directoryPath);
     if (!dir.exists()) {
@@ -84,37 +103,44 @@ QStringList FileManager::ListFiles(const QString& directoryPath) {
     return fullPaths;
 }
 
-void FileManager::addFileToList(FileInfo& file) {
+/* AddFileToTypeSizeMap(): Adds a single file to the data member
+ * "AllFilesByTypeSize" located in the File manager class. Correctly
+ * sorts the file to its correct location within the map. First
+ *
+ * input: a single file location
+ * output: an updated AllFilesByTypeSize map containing
+ * that input file.
+ */
+void FileManager::addFileToTypeSizeMap(FileInfo& file) {
+    // key == input files type
+    // value == size map for that type
     auto& sizeMap =
-        AllFilesByTypeSize[file.getFileType()];  // list of same size file types
+        AllFilesByTypeSize[file.getFileType()];
+    // key == input file size
+    // value = list for that type and size
     auto& fileList =
-        sizeMap[file.getFileSize()];  // list of same-sized file infos
+        sizeMap[file.getFileSize()];
 
     fileList.push_back(file);
 
-    // Check for duplicates (if list has more than one file now)
+    // if list has > 1 size, check dupes and hash files
+    // for later duplicate detection.
     if (fileList.size() > 1) CheckAndAddDupes(fileList);
 }
-
+/* CheckAndAddDupes(): Checks a list of FileInfo Objects
+ * for duplicates and adds them to the DupesMap if they
+ * are found.
+ *
+ * input: List of FileInfo objects, with a sepcific Type and Size
+ * output: an updated DupesMap.
+ */
 void FileManager::CheckAndAddDupes(std::list<FileInfo>& list) {
-    // Ensure each file in the list has a valid hash
+    // File Hashes will be needed for duplicate detection
     UpdateHashes(list);
 
+    // Makes finding dupes easier
     list.sort();
 
-    // std::unordered_set<QByteArray> HashList = StoreUniqueHashes(list);
-
-    AddDupesToMap(list);
-}
-
-void FileManager::UpdateHashes(std::list<FileInfo>& list) {
-    for (auto& f : list) {
-        if (f.getHash() == DEAD_HASH)
-            f.setHash(HashFile(QString::fromStdString(f.getFilePath().string())));
-    }
-}
-
-void FileManager::AddDupesToMap(std::list<FileInfo>& list) {
     // Hash map implementation:
     std::unordered_map<QByteArray, std::list<FileInfo>> hashToFilesMap;
 
@@ -131,18 +157,38 @@ void FileManager::AddDupesToMap(std::list<FileInfo>& list) {
             // move original item to 1st element in list
             auto earliest = std::min_element(
                 dList.begin(), dList.end(), [](const FileInfo& l, const FileInfo& r) {
-                return l.getDate() < r.getDate();
-            });
+                    return l.getDate() < r.getDate();
+                });
 
-        if (earliest != dList.end()) {
-            dList.splice(dList.begin(), dList, earliest);
-        }
+            if (earliest != dList.end()) {
+                dList.splice(dList.begin(), dList, earliest);
+            }
 
-        Dupes[hash] = dList;
+            Dupes[hash] = dList;
         }
     }
 }
 
+/* UpdateHashes(): finds the hash value for FileInfo objects
+ * in a list if they are not already hashed.
+ *
+ * input: List of FileInfo objects
+ * output: An updated List of FileInfo objects
+ */
+void FileManager::UpdateHashes(std::list<FileInfo>& list) {
+    for (auto& f : list) {
+        if (f.getHash() == DEAD_HASH)
+            f.setHash(HashFile(QString::fromStdString(f.getFilePath().string())));
+    }
+}
+
+/* operator<<(): overloaded out operator for the Filemanager
+ * class. Mainly used for debugging
+ *
+ * input: FileManager object
+ * output: Files by type and size in the outstream
+ *          specified
+ */
 std::ostream& operator<<(std::ostream& out, const FileManager& f) {
     for (const auto& [fileType, MapSize] : f.AllFilesByTypeSize) {
         out << "File Type: " << fileType.toStdString() << "\n";

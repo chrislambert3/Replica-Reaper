@@ -43,7 +43,7 @@ class FileManagerTest : public QObject {
   void testListFilesFail();
   void testInitAddFileToList();
   void testAddDupeToAddFileToList();
-  void testAddNonDupeToAddFileToList();
+  void testAddNonDupeToaddFileToTypeSizeMap();
 
   // UI Components Tests:
   void testProgressBarUpdate();
@@ -185,7 +185,7 @@ void FileManagerTest::testInitAddFileToList() {
                   testManager.HashFile("TestFiles/testfile1.txt"));
 
     // add test file to list
-    testManager.addFileToList(file);
+    testManager.addFileToTypeSizeMap(file);
 
     // verify file type has 1 entry
     QVERIFY(testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]
@@ -220,14 +220,14 @@ void FileManagerTest::testAddDupeToAddFileToList() {
   qDebug("testAddFileToList verifying duplicate goes to the same list");
 
   // add test file to list
-  testManager.addFileToList(fileDupe);
+  testManager.addFileToTypeSizeMap(fileDupe);
 
   // verify type and size have 2 entries
   QVERIFY(testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]
               .size() == 2);
 }
 
-void FileManagerTest::testAddNonDupeToAddFileToList() {
+void FileManagerTest::testAddNonDupeToaddFileToTypeSizeMap() {
     // create test files to ensure its added correctly
     fs::path fPath = fs::current_path() / "TestFiles/testfile1.txt";
     FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
@@ -245,10 +245,10 @@ void FileManagerTest::testAddNonDupeToAddFileToList() {
         fs::file_size(fPathDiff), testManager.HashFile("TestFiles/testfile2.txt"));
 
     qDebug(
-        "testAddFileToList verifying non-duplicate goes to different size list");
+        "testaddFileToTypeSizeMap verifying non-duplicate goes to different size list");
 
     // add different test file to list
-    testManager.addFileToList(fileDiff);
+    testManager.addFileToTypeSizeMap(fileDiff);
 
     // test files at different location
     QVERIFY(testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]

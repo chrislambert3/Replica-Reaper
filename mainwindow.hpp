@@ -11,9 +11,12 @@
 #include <QTreeWidget>
 #include <QDialogButtonBox>
 #include <QMessageBox>
+#include <QStandardPaths>
 #include <filesystem>
 #include <iostream>
 #include <string>
+#include <vector>
+#include <fstream>
 #include "filemanager.hpp"
 #include "FileInfo.hpp"
 #include "settings.hpp"
@@ -33,7 +36,7 @@ class MainWindow : public QMainWindow {
 
  public:
     explicit MainWindow(QWidget *parent = nullptr);
-    void onPushButtonClicked();
+    void onReaperButtonClicked();
     void ShowDupesInUI(const FileManager &f);
     void showDeleteConfirmation(const list<pair<QString, QString>>& files);
     void onTreeItemChanged(QTreeWidgetItem *item);

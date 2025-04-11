@@ -4,6 +4,7 @@
 
 #include <QDialog>
 #include <QEvent>
+#include <QMessageBox>
 #include "mainwindow.hpp"
 
 namespace Ui {

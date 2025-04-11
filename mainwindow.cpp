@@ -39,7 +39,7 @@ MainWindow::MainWindow(QWidget *parent)
     // this links the button on the UI to the event function
     // "RunReaperBTN" is the name of the variable on the ui
     connect(ui->RunReaperBTN, &QPushButton::clicked, this,
-            &MainWindow::onPushButtonClicked);
+            &MainWindow::onReaperButtonClicked);
     // Connect signal to handle parent-child checkbox logic
     connect(ui->treeWidget, &QTreeWidget::itemChanged, this,
             &MainWindow::onTreeItemChanged);
@@ -68,7 +68,7 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     }
 }
 
-void MainWindow::onPushButtonClicked() {
+void MainWindow::onReaperButtonClicked() {
     qDebug() << "Button clicked!";
     // clear the tree widget
     ui->treeWidget->clear();
@@ -105,7 +105,7 @@ void MainWindow::onPushButtonClicked() {
         FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
                     fs::file_size(fPath));
         // Push and sort FileInfo class into FileManager class
-        manager->addFileToList(file);  // passes in fileinfo
+        manager->addFileToTypeSizeMap(file);  // passes in fileinfo
         // std::cout << *manager;  // DEBUG *************
 
         if (i % 50 == 0 || i == filePaths.size() - 1) {  // Update every 50 files
@@ -278,7 +278,7 @@ list<pair<QString, QString>> MainWindow::getCheckedItems() {
 
 /* PythonAutoTestHelper() : runs the entire program. This
  * function is used solely for testing the run time of the
- * program. It is a slightly modified copy of OnPushButtonClicked()
+ * program. It is a slightly modified copy of OnReaperButtonClicked()
  *
  * Input: A directory path to be run time tested
  * output: Run time in milliseconds
@@ -296,7 +296,7 @@ qint64 MainWindow::PythonAutoTestHelper(QString InputPath) {
         fs::path fPath = filePaths[i].toStdString();
         FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
                   fs::file_size(fPath));
-        manager->addFileToList(file);
+        manager->addFileToTypeSizeMap(file);
     }
 
     return timer.elapsed();

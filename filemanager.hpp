@@ -34,11 +34,10 @@ class FileManager : public QObject {
     QStringList ListFiles(const QString& directoryPath);
     void AddToDupes(const FileInfo& File);
     void ShowNotification(const QString& title, const QString& message);
-    void addFileToList(FileInfo& file);
+    void addFileToTypeSizeMap(FileInfo& file);
     void CheckAndAddDupes(std::list<FileInfo>& list);
     void setMainWindow(QMainWindow* ui);
     void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
-    void AddDupesToMap(std::list<FileInfo>& list);
     void UpdateHashes(std::list<FileInfo>& list);
     void ClearData() {
         AllFilesByTypeSize.clear();

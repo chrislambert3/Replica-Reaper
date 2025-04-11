@@ -1,5 +1,4 @@
 // Copyright 2025 Replica Reaper
-#include <QMessageBox>
 #include "settings.hpp"
 #include "ui_settings.h"
 
