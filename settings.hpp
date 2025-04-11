@@ -8,7 +8,7 @@
 #include "mainwindow.hpp"
 
 namespace Ui {
-    class Settings;
+class Settings;
 }
 
 class Settings : public QDialog {

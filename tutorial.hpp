@@ -6,7 +6,7 @@
 #include <QStandardPaths>
 #include <QDir>
 namespace Ui {
-    class Tutorial;
+class Tutorial;
 }
 
 class Tutorial : public QDialog {
