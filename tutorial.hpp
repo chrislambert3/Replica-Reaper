@@ -6,18 +6,18 @@
 #include <QStandardPaths>
 #include <QDir>
 namespace Ui {
-class Tutorial;
+    class Tutorial;
 }
 
 class Tutorial : public QDialog {
-  Q_OBJECT
+    Q_OBJECT
 
  public:
-  explicit Tutorial(QWidget *parent = nullptr);
-  ~Tutorial();
+    explicit Tutorial(QWidget *parent = nullptr);
+    ~Tutorial();
 
  private:
-  Ui::Tutorial *ui;
+    Ui::Tutorial *ui;
 };
 
 #endif  // TUTORIAL_H

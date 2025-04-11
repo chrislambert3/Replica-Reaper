@@ -1,5 +1,4 @@
 // Copyright 2025 Replica Reaper
-#pragma once
 #ifndef MAINWINDOW_HPP
 #define MAINWINDOW_HPP
 
@@ -30,31 +29,31 @@ class MainWindow;
 QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow {
-  Q_OBJECT
+    Q_OBJECT
 
  public:
-  explicit MainWindow(QWidget *parent = nullptr);
-  void onPushButtonClicked();
-  void ShowDupesInUI(const FileManager &f);
-  void showDeleteConfirmation(const list<pair<QString, QString>>& files);
-  void onTreeItemChanged(QTreeWidgetItem *item);
-  void onDelSelBTN_clicked();
-  void onDelAllBTN_clicked();
-  list<pair<QString, QString>> getCheckedItems();
-  void setBackgroundState(bool state);
-  void closeEvent(QCloseEvent *event);
-  qint64 PythonAutoTestHelper(QString InputPath);
-  qint64 getDirectorySize(const QString &dirPath);
-  ~MainWindow();
+    explicit MainWindow(QWidget *parent = nullptr);
+    void onPushButtonClicked();
+    void ShowDupesInUI(const FileManager &f);
+    void showDeleteConfirmation(const list<pair<QString, QString>>& files);
+    void onTreeItemChanged(QTreeWidgetItem *item);
+    void onDelSelBTN_clicked();
+    void onDelAllBTN_clicked();
+    list<pair<QString, QString>> getCheckedItems();
+    void setBackgroundState(bool state);
+    void closeEvent(QCloseEvent *event);
+    qint64 PythonAutoTestHelper(QString InputPath);
+    qint64 getDirectorySize(const QString &dirPath);
+    ~MainWindow();
 
  private slots:
-  void on_SettBTN_clicked();
-  void on_HowUseBTN_clicked();
+    void on_SettBTN_clicked();
+    void on_HowUseBTN_clicked();
 
  private:
-  Ui::MainWindow *ui;
-  FileManager *manager;
-  Tutorial *tutorial = nullptr;
-  bool backgroundCheck;
+    Ui::MainWindow *ui;
+    FileManager *manager;
+    Tutorial *tutorial = nullptr;
+    bool backgroundCheck;
 };
 #endif /* MAINWINDOW_HPP */

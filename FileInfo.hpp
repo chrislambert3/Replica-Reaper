@@ -1,5 +1,4 @@
 // Copyright 2025 Replica Reaper
-#pragma once
 #ifndef FILEINFO_HPP
 #define FILEINFO_HPP
 #include <QString>
