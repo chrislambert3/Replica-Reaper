@@ -7,6 +7,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     ui->progressBar->setValue(0);
     this->setWindowTitle("Replica Reaper");
+    this->setWindowIcon(QIcon(":/assets/assets/rr-logo.png"));
     manager->setMainWindow(this);
     // sets the background state
     this->backgroundCheck = false;
