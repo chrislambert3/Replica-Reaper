@@ -27,7 +27,7 @@ void Settings::closeEvent(QCloseEvent *event) {
 void Settings::setState(bool backgroundCheck) {
     ui->bgCheckBox->setCheckState(backgroundCheck ? Qt::Checked : Qt::Unchecked);
 }
-bool Settings::getState(){
+bool Settings::getState() {
     return ui->bgCheckBox->isChecked();
 }
 // applies the changed settings in the mainwindow

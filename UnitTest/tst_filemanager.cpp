@@ -66,7 +66,7 @@ class FileManagerTest : public QObject {
   void test_TutorialExternalLinksEnabled();
   void test_TutorialButtonsCreation();
 
-  //Settings class Tests:
+  // Settings class Tests:
   void test_SettingsComponentCreation();
   void test_SettingsApplySettings();
   void test_SettingsCancelButtonClicked();

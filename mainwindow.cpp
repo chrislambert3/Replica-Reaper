@@ -49,6 +49,7 @@ MainWindow::MainWindow(QWidget *parent)
             &MainWindow::onDelAllBTN_clicked);
 }
 
+
 MainWindow::~MainWindow() {
     delete ui;
     delete manager;

@@ -47,8 +47,8 @@ class MainWindow : public QMainWindow {
     void onDelSelBTN_clicked();
     void onDelAllBTN_clicked();
     list<pair<QString, QString>> getCheckedItems();
-    void setBackgroundState(bool state){ settings.backgroundCheck = state;}
-    bool getBackgroundState(){ return settings.backgroundCheck;}
+    void setBackgroundState(bool state) { settings.backgroundCheck = state;}
+    bool getBackgroundState() { return settings.backgroundCheck;}
     void closeEvent(QCloseEvent *event);
     qint64 PythonAutoTestHelper(QString InputPath);
     qint64 getDirectorySize(const QString &dirPath);
