@@ -55,6 +55,7 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow() {
     delete ui;
     delete manager;
+    delete tutorial;
 }
 
 // Overloaded function that automatically gets called when user closes UI
