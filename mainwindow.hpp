@@ -31,6 +31,10 @@ class MainWindow;
 }
 QT_END_NAMESPACE
 
+struct AppSettings {
+    bool backgroundCheck = false;
+};
+
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
@@ -43,7 +47,8 @@ class MainWindow : public QMainWindow {
     void onDelSelBTN_clicked();
     void onDelAllBTN_clicked();
     list<pair<QString, QString>> getCheckedItems();
-    void setBackgroundState(bool state);
+    void setBackgroundState(bool state){ settings.backgroundCheck = state;}
+    bool getBackgroundState(){ return settings.backgroundCheck;}
     void closeEvent(QCloseEvent *event);
     qint64 PythonAutoTestHelper(QString InputPath);
     qint64 getDirectorySize(const QString &dirPath);
@@ -57,6 +62,6 @@ class MainWindow : public QMainWindow {
     Ui::MainWindow *ui;
     FileManager *manager;
     Tutorial *tutorial = nullptr;
-    bool backgroundCheck;
+    AppSettings settings;
 };
 #endif /* MAINWINDOW_HPP */

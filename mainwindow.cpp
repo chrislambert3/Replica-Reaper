@@ -8,8 +8,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->progressBar->setValue(0);
     this->setWindowTitle("Replica Reaper");
     manager->setMainWindow(this);
-    // sets the background state
-    this->backgroundCheck = false;
 
     // Tree Widget config:
     ui->treeWidget->setColumnCount(3);  // Single column for file names
@@ -59,7 +57,7 @@ MainWindow::~MainWindow() {
 // Overloaded function that automatically gets called when user closes UI
 void MainWindow::closeEvent(QCloseEvent *event) {
     // if the "Run in Background" button is checked,
-    if (this->backgroundCheck) {
+    if (this->settings.backgroundCheck) {
         // If checked, just close the window (keeps running in bacnground)
         event->accept();  // Accept the event, which will close the window
     } else {
@@ -323,13 +321,9 @@ qint64 MainWindow::getDirectorySize(const QString &dirPath) {
 
 void MainWindow::on_SettBTN_clicked() {
     Settings *settings = new Settings(this);
-    settings->setState(this->backgroundCheck);
+    settings->setState(this->settings.backgroundCheck);
     settings->setModal(true);
     settings->exec();
-}
-
-void MainWindow::setBackgroundState(bool state) {
-    this->backgroundCheck = state;
 }
 
 void MainWindow::showDeleteConfirmation(

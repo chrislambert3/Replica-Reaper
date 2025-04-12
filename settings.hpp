@@ -6,6 +6,7 @@
 #include <QEvent>
 #include <QMessageBox>
 #include "mainwindow.hpp"
+#include "ui_settings.h"
 
 namespace Ui {
 class Settings;
@@ -18,15 +19,13 @@ class Settings : public QDialog {
     explicit Settings(QWidget *parent = nullptr);
     void applySettings();
     void setState(bool backgroundCheck);
+    bool getState();
+    void onCancelBTN_clicked();
+    void onApplyBTN_clicked();
     void closeEvent(QCloseEvent *event);
 
     ~Settings();
-
  private slots:
-
-    void on_cancelBTN_clicked();
-
-    void on_applyBTN_clicked();
 
  private:
     Ui::Settings *ui;
