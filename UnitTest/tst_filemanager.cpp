@@ -5,6 +5,7 @@
 #include <QProgressBar>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
+#include <QTextBrowser>
 #include <filesystem>
 #include <string>
 #include "../filemanager.hpp"
@@ -59,6 +60,11 @@ class FileManagerTest : public QObject {
   void testFileInfoSetHash();
   void testFileInfoComparisonOperators();
   void testFileInfoDateCreated();
+
+  // Tutorial class Tests:
+  void test_TutorialTextBrowserContent();
+  void test_TutorialExternalLinksEnabled();
+  void test_TutorialButtonsCreation();
 
   // cleanupTestCase() will be called after the last test function was executed.
   void cleanupTestCase();
@@ -472,6 +478,31 @@ void FileManagerTest::testUncheckingAllChildSetsParentUncheck() {
 
   // Verify that the parent item is set to "Unchecked"
   QCOMPARE(parentItem->checkState(0), Qt::Unchecked);
+}
+
+void FileManagerTest::test_TutorialTextBrowserContent() {
+    Tutorial tutorial;
+    auto* textBrowser = tutorial.findChild<QTextBrowser *>("textBrowser");
+    QVERIFY(textBrowser);
+    QVERIFY(textBrowser->toHtml().contains("How to Use Replica Reaper"));
+    QVERIFY(textBrowser->toHtml().contains("Run the Reaper"));
+}
+
+void FileManagerTest::test_TutorialExternalLinksEnabled() {
+    Tutorial tutorial;
+    auto* textBrowser = tutorial.findChild<QTextBrowser*>("textBrowser");
+    QVERIFY(textBrowser);
+    QVERIFY(textBrowser->openExternalLinks());
+}
+
+void FileManagerTest::test_TutorialButtonsCreation() {
+    Tutorial tutorial;
+    QStringList buttonNames = {"tryDownBTN", "tryDocBTN", "tryPicBTN", "tryDeskBTN"};
+    for (const QString& btnName : buttonNames) {
+        QPushButton* btn = tutorial.findChild<QPushButton*>(btnName);
+        // Check if the button was created
+        QVERIFY(btn);
+    }
 }
 
 // Cleans up after all test functions have executed
