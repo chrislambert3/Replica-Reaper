@@ -191,6 +191,7 @@ void MainWindow::ShowDupesInUI(const FileManager &f) {
                     .getFilePath()
                     .string()));  // Next column value to go under FilePath
         parentHashItem->setText(2, it->second.front().getDate().toString());
+        parentHashItem->setToolTip(1, QString::fromStdString(it->second.front().getFilePath().string()));
         parentHashItem->setCheckState(0, Qt::Unchecked);  // Default unchecked
         // add the parent item to tree
         ui->treeWidget->addTopLevelItem(parentHashItem);
@@ -202,6 +203,7 @@ void MainWindow::ShowDupesInUI(const FileManager &f) {
             QTreeWidgetItem *childItem = new QTreeWidgetItem(parentHashItem);
             childItem->setText(0, a.getFileName());  // set the filename
             childItem->setText(1, out);              // sets the filepath column
+            childItem->setToolTip(1, out);
             childItem->setText(2, a.getDate().toString());
             childItem->setCheckState(0, Qt::Unchecked);
         }
