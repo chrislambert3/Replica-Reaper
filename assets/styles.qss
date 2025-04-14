@@ -25,6 +25,24 @@ QPushButton:disabled {
     border: none;
 }
 
+QPushButton#CancelBTN {
+    background-color: #e74c3c;  /* Red color */
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 10px;
+    font-weight: bold;
+}
+
+QPushButton#CancelBTN:hover {
+    background-color: #c0392b;  /* Darker red on hover */
+}
+
+QPushButton#CancelBTN:pressed {
+    background-color: #9b2c2c;  /* Even darker red when pressed */
+}
+
+
 QPushButton:hover {
     background-color: #2980b9;
 }

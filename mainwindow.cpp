@@ -5,6 +5,9 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), manager(new FileManager()) {
     ui->setupUi(this);
+    // hide the cancel button initially
+    ui->CancelBTN->setVisible(false);
+    // ui->CancelBTN->setObjectName("CancelBTN");
 
     // Set up UI styling file
     QFile styleFile(":/assets/assets/styles.qss");
@@ -39,6 +42,9 @@ MainWindow::MainWindow(QWidget *parent)
     // Connect the "DelAllBTN" to the onDelAllBTN_clicked function
     connect(ui->DelAllBTN, &QPushButton::clicked, this,
             &MainWindow::onDelAllBTN_clicked);
+    // Connect the "CancelBTN" to the onCancelBTN_clicked function
+    connect(ui->CancelBTN, &QPushButton::clicked, this,
+            &MainWindow::onCancelBTN_clicked);
 
 
     // Download check loop start
@@ -114,6 +120,7 @@ void MainWindow::onReaperButtonClicked() {
     }
     // disable the button before reaping
     ui->RunReaperBTN->setEnabled(false);
+    ui->CancelBTN->setVisible(true);
     // set the status on the status bar
     ui->statusbar->showMessage("Scanning Files...");
 
@@ -134,6 +141,17 @@ void MainWindow::onReaperButtonClicked() {
     // Loop through each file and hash it (prints to console for now)
 
     for (int i = 0; i < filePaths.size(); ++i) {
+        // If the cancel button was flagged
+        if(this->getCancelButtonState()){
+            this->setCancelButtonState(false); // reset state
+            ui->treeWidget->clear(); // clear table (if any)
+            manager->ClearData(); // clear filemanager data
+            ui->CancelBTN->setVisible(false); // show cancel button
+            ui->RunReaperBTN->setEnabled(true); // re-enable reaper button
+            ui->progressBar->setValue(0); // reset the progress bar to 0
+            manager->ShowNotification("Reaping Canceled", "Scanning has cancelled sucessfully");
+            return;
+        }
         // setup for FileInfo class
         fs::path fPath = filePaths[i].toStdString();
         FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
@@ -157,6 +175,7 @@ void MainWindow::onReaperButtonClicked() {
     manager->ShowNotification("Hashing Complete", message);
     ShowDupesInUI(*manager);
     // re-enable the button
+    ui->CancelBTN->setVisible(false);
     ui->RunReaperBTN->setEnabled(true);
     // clear the filemanager maps
     manager->ClearData();
@@ -496,4 +515,9 @@ void MainWindow::on_HowUseBTN_clicked() {
     tutorial->show();
     tutorial->raise();           // Bring to front
     tutorial->activateWindow();  // Give focus
+}
+
+void MainWindow::onCancelBTN_clicked(){
+    // flag the cancel boolean
+    this->setCancelButtonState(true);
 }
