@@ -212,8 +212,26 @@ void MainWindow::ShowDupesInUI(const FileManager &f) {
                     ui->treeWidget->setColumnWidth(0, colWidth);
                 }
             });
-
     // helper function to resize widget colums when expanded or collapsed
+    auto adjustColumnWidth = [=]() {
+        QHeaderView* header = ui->treeWidget->header();
+        // Temporarily resize to fit all visible content
+        header->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+        // Lock new width
+        int updatedColWidth = ui->treeWidget->columnWidth(0);
+        header->setSectionResizeMode(0, QHeaderView::Interactive);
+        ui->treeWidget->setColumnWidth(0, updatedColWidth);
+    };
+    // When a parent is expanded
+    connect(ui->treeWidget, &QTreeWidget::itemExpanded,
+            this, [=](QTreeWidgetItem *) {
+                adjustColumnWidth();
+            });
+    // When a parent is collapsed
+    connect(ui->treeWidget, &QTreeWidget::itemCollapsed,
+            this, [=](QTreeWidgetItem *) {
+                adjustColumnWidth();
+            });
     // Prevent column resizing beyond viewport width
     header->setStretchLastSection(false);
     ui->treeWidget->blockSignals(false);
