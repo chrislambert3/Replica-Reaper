@@ -316,6 +316,15 @@ list<pair<QString, QString>> MainWindow::getCheckedItems() {
 
         // Skip if the parent is unchecked (so no childs are checked)
         if (parentItem->checkState(0) == Qt::Unchecked) {
+            // special case for if the original file is checked
+            auto firstChild = parentItem->child(0);
+            if (firstChild->checkState(0) == Qt::Checked){
+                auto filename = firstChild->text(0);
+                auto filepath = firstChild->text(1);
+                // add pairs to files
+                std::pair<QString, QString> pair(filename, filepath);
+                files.push_back(pair);
+            }
             continue;
         }
 
@@ -408,13 +417,38 @@ void MainWindow::showDeleteConfirmation(
     QLabel *label =
         new QLabel("Are you sure you want to delete the following files?");
     layout->addWidget(label);
-
-    QListWidget *listWidget = new QListWidget();
-    // Only add the first element of each pair (filename)
-    for (const auto &filePair : files) {
-        listWidget->addItem(filePair.first);
+    // Get the original file paths from tree widget parents
+    std::unordered_set<QString> originalPaths;
+    for (int i = 0; i < ui->treeWidget->topLevelItemCount(); ++i) {
+        QTreeWidgetItem *parentItem = ui->treeWidget->topLevelItem(i);
+        originalPaths.insert(parentItem->text(1));
     }
+    // Make a list widget to populate files
+    QListWidget *listWidget = new QListWidget();
+    int originalCount = 0;
+    for (const auto &filePair : files) {
+        auto& filename = filePair.first;
+        auto& filepath = filePair.second;
+        QListWidgetItem *item = new QListWidgetItem(filename);
+
+        if (originalPaths.find(filepath) != originalPaths.end()) {
+            originalCount++;
+            item->setText(filename + " [ORIGINAL]");
+
+            QFont boldFont = item->font();
+            boldFont.setBold(true);
+            item->setFont(boldFont);
+            item->setForeground(Qt::darkRed);  // Optional: visually distinct
+        }
+        listWidget->addItem(item);
+    }
+
     layout->addWidget(listWidget);
+
+    if (originalCount > 0){
+        label->setTextFormat(Qt::RichText);
+        label->setText(label->text() + "<br><b>You have: " + QString::number(originalCount) + " original files selected. </b>");
+    }
 
     QDialogButtonBox *buttonBox =
         new QDialogButtonBox(QDialogButtonBox::Yes | QDialogButtonBox::No);
@@ -426,30 +460,25 @@ void MainWindow::showDeleteConfirmation(
                    &QDialog::reject);
 
     if (dialog.exec() == QDialog::Accepted) {
-        // temperary "success flag"
-        QMessageBox::information(this, "Success",
-                             "Selected files deleted successfully.");
         // Delete files
         // Deleting File Logic:
-        /*
         QStringList failedDeletions;
-
         for (const auto& filePair : files) {
             QString fullPath = filePair.second;
             QFile file(fullPath);
             if (!file.remove()) {
             failedDeletions.append(fullPath);
+            }
         }
-    }
 
         if (!failedDeletions.isEmpty()) {
-            QString errorMsg = "Failed to delete the following files:\n" +
-        failedDeletions.join("\n"); QMessageBox::warning(this, "Deletion Failed",
-        errorMsg); } else { QMessageBox::information(this, "Success", "Selected
-        files deleted successfully.");
-    }*/
+            QString errorMsg = "Failed to delete the following files:\n" + failedDeletions.join("\n");
+            QMessageBox::warning(this, "Deletion Failed",errorMsg);
+        } else {
+            QMessageBox::information(this, "Success", "Selected files deleted successfully.");
+        }
     } else {
-        // Canceled
+        // User Canceled
     }
 }
 
