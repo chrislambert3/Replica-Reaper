@@ -20,4 +20,4 @@ class Tutorial : public QDialog {
     Ui::Tutorial *ui;
 };
 
-#endif  // TUTORIAL_H
+#endif  // TUTORIAL_HPP

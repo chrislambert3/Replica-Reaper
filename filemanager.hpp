@@ -32,11 +32,11 @@ class FileManager : public QObject {
     QString PromptDirectory(QWidget* widget);
     QByteArray HashFile(QString fileName);
     QStringList ListFiles(const QString& directoryPath);
-    void AddToDupes(const FileInfo& File);
     void ShowNotification(const QString& title, const QString& message);
     void addFileToTypeSizeMap(FileInfo& file);
     void CheckAndAddDupes(std::list<FileInfo>& list);
-    void setMainWindow(QMainWindow* ui);
+    // allows access to show and hide the UI
+    void setMainWindow(QMainWindow* ui) { this->ui = ui; }
     void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
     void UpdateHashes(std::list<FileInfo>& list);
     void ClearData() {

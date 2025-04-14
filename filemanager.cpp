@@ -213,10 +213,7 @@ void FileManager::ShowNotification(const QString& title,
     this->trayIcon->showMessage(title, message, QSystemTrayIcon::Information,
                                 10000);
 }
-// This file should add to the qlist of qlists of FileInfos
-// if a duplicate isnt found already in here an exception is thrown
 
-void FileManager::AddToDupes(const FileInfo& File) { return; }
 // this function activates when the system tray icon is clicked
 void FileManager::onTrayIconActivated(
     QSystemTrayIcon::ActivationReason reason) {
@@ -233,5 +230,3 @@ void FileManager::onTrayIconActivated(
         }
     }
 }
-// allows access to show and hide the UI
-void FileManager::setMainWindow(QMainWindow* ui) { this->ui = ui; }

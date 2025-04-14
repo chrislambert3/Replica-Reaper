@@ -61,15 +61,29 @@ MainWindow::~MainWindow() {
 // Overloaded function that automatically gets called when user closes UI
 void MainWindow::closeEvent(QCloseEvent *event) {
     // if the "Run in Background" button is checked,
-    if (this->settings.backgroundCheck) {
-        // If checked, just close the window (keeps running in bacnground)
-        event->accept();  // Accept the event, which will close the window
+    if (this->backgroundCheck) {
+        // Program will run in background to check for
+        // Updates to DownLoad Directory
+        this->hide;
+        event->ignore;
     } else {
         qApp->quit();  // Close the full application
         event->accept();
     }
 }
 
+/* onReaperButtonClicked(): called when the reaper button is
+ * clicked. Prompts user for directory to be reaped. Runs
+ * the general program and find all duplicates
+ *
+ * input: nothing
+ * output: nothing
+ *
+ * NOTE: not sure that we should reset the maps at the
+ * end of this. Or atleast we need to make sure that run in
+ * the background is not turned on if we do.
+ *
+ */
 void MainWindow::onReaperButtonClicked() {
     qDebug() << "Button clicked!";
     // clear the tree widget
@@ -118,8 +132,6 @@ void MainWindow::onReaperButtonClicked() {
         // qDebug() << "File No: " << i;
     }
 
-    // std::cout << *manager;  // DEBUG *************
-
     // returns elapsed time in milliseconds ( /1000 for seconds)
     auto elapsedTime = timer.elapsed();
     QString message =
@@ -132,12 +144,13 @@ void MainWindow::onReaperButtonClicked() {
     manager->ClearData();
 }
 
-// adds one file to qlistwidget
-// duplicates will be located adjacently
-// currently a stub function for testing
-// currently just adds string including filepath and date
-// Does not currently locate items adjacently
-// NEED TO REFACTOR SO IT TAKES A FILEINFO
+
+/* ShowDupesInUI(): Displays the duplicates to the UI window.
+ * Displays filename and the date it was last modified?
+ *
+ * input: The filemanager holding all duplicates
+ * output: UI display with a list of duplcates
+ */
 void MainWindow::ShowDupesInUI(const FileManager &f) {
     QString out;
     for (auto it = f.Dupes.begin(); it != f.Dupes.end(); ++it) {
@@ -322,14 +335,12 @@ qint64 MainWindow::getDirectorySize(const QString &dirPath) {
 
     return totalSize;
 }
-
 void MainWindow::on_SettBTN_clicked() {
     Settings *settings = new Settings(this);
     settings->setState(this->settings.backgroundCheck);
     settings->setModal(true);
     settings->exec();
 }
-
 void MainWindow::showDeleteConfirmation(
         const list<pair<QString, QString>> &files) {
     QDialog dialog(this);
@@ -394,4 +405,15 @@ void MainWindow::on_HowUseBTN_clicked() {
     tutorial->show();
     tutorial->raise();           // Bring to front
     tutorial->activateWindow();  // Give focus
+}
+
+void MainWindow::on_SettBTN_clicked() {
+    Settings *settings = new Settings(this);
+    settings->setState(this->backgroundCheck);
+    settings->setModal(true);
+    settings->exec();
+}
+
+void MainWindow::setBackgroundState(bool state) {
+    this->backgroundCheck = state;
 }

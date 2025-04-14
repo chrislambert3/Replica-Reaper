@@ -1,7 +1,9 @@
 // Copyright 2025 Replica Reaper
 #include "tutorial.hpp"
 #include "ui_tutorial.h"
-
+/*Tutorial value constructor:
+ *
+ */
 Tutorial::Tutorial(QWidget *parent) : QDialog(parent), ui(new Ui::Tutorial) {
     ui->setupUi(this);
     this->setWindowTitle("Tutorial");
