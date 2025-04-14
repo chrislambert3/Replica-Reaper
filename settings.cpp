@@ -3,14 +3,20 @@
 #include "ui_settings.h"
 
 Settings::Settings(QWidget *parent) : QDialog(parent), ui(new Ui::Settings) {
-  ui->setupUi(this);
+    ui->setupUi(this);
+
+    // Connect apply and cancel buttons to functions
+    connect(ui->applyBTN, &QPushButton::clicked, this,
+            &Settings::onApplyBTN_clicked);
+    connect(ui->cancelBTN, &QPushButton::clicked, this,
+            &Settings::onCancelBTN_clicked);
 }
 
 Settings::~Settings() { delete ui; }
 
-void Settings::on_cancelBTN_clicked() { this->hide(); }
+void Settings::onCancelBTN_clicked() { this->hide(); }
 
-void Settings::on_applyBTN_clicked() {
+void Settings::onApplyBTN_clicked() {
     applySettings();
     this->hide();
 }
@@ -20,6 +26,9 @@ void Settings::closeEvent(QCloseEvent *event) {
 
 void Settings::setState(bool backgroundCheck) {
     ui->bgCheckBox->setCheckState(backgroundCheck ? Qt::Checked : Qt::Unchecked);
+}
+bool Settings::getState() {
+    return ui->bgCheckBox->isChecked();
 }
 // applies the changed settings in the mainwindow
 void Settings::applySettings() {
