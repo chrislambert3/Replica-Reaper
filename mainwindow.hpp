@@ -61,8 +61,8 @@ class MainWindow : public QMainWindow {
     ~MainWindow();
 
  private slots:
-    void on_SettBTN_clicked();
-    void on_HowUseBTN_clicked();
+    void onSettBTN_clicked();
+    void onHowUseBTN_clicked();
 
  private:
     Ui::MainWindow *ui;

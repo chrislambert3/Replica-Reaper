@@ -45,6 +45,12 @@ MainWindow::MainWindow(QWidget *parent)
     // Connect the "CancelBTN" to the onCancelBTN_clicked function
     connect(ui->CancelBTN, &QPushButton::clicked, this,
             &MainWindow::onCancelBTN_clicked);
+    // Connect the "SettBTN" to the onSettBTN_clicked function
+    connect(ui->SettBTN, &QPushButton::clicked, this,
+            &MainWindow::onSettBTN_clicked);
+    // Connect the "HowUseBTN" to the onHowUseBTN_clicked function
+    connect(ui->HowUseBTN, &QPushButton::clicked, this,
+            &MainWindow::onHowUseBTN_clicked);
 
 
     // Download check loop start
@@ -429,7 +435,7 @@ qint64 MainWindow::getDirectorySize(const QString &dirPath) {
 
     return totalSize;
 }
-void MainWindow::on_SettBTN_clicked() {
+void MainWindow::onSettBTN_clicked() {
     Settings *settings = new Settings(this);
     settings->setState(this->settings.backgroundCheck);
     settings->setModal(true);
@@ -514,7 +520,7 @@ void MainWindow::showDeleteConfirmation(
     }
 }
 
-void MainWindow::on_HowUseBTN_clicked() {
+void MainWindow::onHowUseBTN_clicked() {
     if (!tutorial) {
         tutorial = new Tutorial(this);
     }
