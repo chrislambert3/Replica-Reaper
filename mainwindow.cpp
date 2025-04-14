@@ -49,6 +49,7 @@ MainWindow::MainWindow(QWidget *parent)
     // Connect the "DelAllBTN" to the onDelAllBTN_clicked function
     connect(ui->DelAllBTN, &QPushButton::clicked, this,
             &MainWindow::onDelAllBTN_clicked);
+
 }
 
 MainWindow::~MainWindow() {
@@ -60,8 +61,10 @@ MainWindow::~MainWindow() {
 void MainWindow::closeEvent(QCloseEvent *event) {
     // if the "Run in Background" button is checked,
     if (this->backgroundCheck) {
-        // If checked, just close the window (keeps running in bacnground)
-        event->accept();  // Accept the event, which will close the window
+        // Program will run in background to check for
+        // Updates to DownLoad Directory
+        this->hide;
+        event->ignore;
     } else {
         qApp->quit();  // Close the full application
         event->accept();
