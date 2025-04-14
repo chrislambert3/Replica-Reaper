@@ -142,13 +142,13 @@ void MainWindow::onReaperButtonClicked() {
 
     for (int i = 0; i < filePaths.size(); ++i) {
         // If the cancel button was flagged
-        if(this->getCancelButtonState()){
-            this->setCancelButtonState(false); // reset state
-            ui->treeWidget->clear(); // clear table (if any)
-            manager->ClearData(); // clear filemanager data
-            ui->CancelBTN->setVisible(false); // show cancel button
-            ui->RunReaperBTN->setEnabled(true); // re-enable reaper button
-            ui->progressBar->setValue(0); // reset the progress bar to 0
+        if (this->getCancelButtonState()) {
+            this->setCancelButtonState(false);  // reset state
+            ui->treeWidget->clear();  // clear table (if any)
+            manager->ClearData();  // clear filemanager data
+            ui->CancelBTN->setVisible(false);  // show cancel button
+            ui->RunReaperBTN->setEnabled(true);  // re-enable reaper button
+            ui->progressBar->setValue(0);  // reset the progress bar to 0
             manager->ShowNotification("Reaping Canceled", "Scanning has cancelled sucessfully");
             return;
         }
@@ -201,7 +201,11 @@ void MainWindow::ShowDupesInUI(const FileManager &f) {
                     .getFilePath()
                     .string()));  // Next column value to go under FilePath
         parentHashItem->setText(2, it->second.front().getDate().toString());
-        parentHashItem->setToolTip(1, QString::fromStdString(it->second.front().getFilePath().string()));
+        parentHashItem->setToolTip(
+            1, QString::fromStdString(
+                it->second.front()
+                    .getFilePath()
+                    .string()));
         parentHashItem->setCheckState(0, Qt::Unchecked);  // Default unchecked
         // add the parent item to tree
         ui->treeWidget->addTopLevelItem(parentHashItem);
@@ -276,7 +280,7 @@ void MainWindow::onTreeItemChanged(QTreeWidgetItem *item) {
         // Get the check status of the parent
         Qt::CheckState newState = item->checkState(0);
         // special case to uncheck the oringial file when parent in unchecked
-        if(newState == Qt::Unchecked){
+        if (newState == Qt::Unchecked) {
             item->child(0)->setCheckState(0, newState);
         }
         // set all the childs states to match the parents
@@ -344,7 +348,7 @@ list<pair<QString, QString>> MainWindow::getCheckedItems() {
         if (parentItem->checkState(0) == Qt::Unchecked) {
             // special case for if the original file is checked
             auto firstChild = parentItem->child(0);
-            if (firstChild->checkState(0) == Qt::Checked){
+            if (firstChild->checkState(0) == Qt::Checked) {
                 auto filename = firstChild->text(0);
                 auto filepath = firstChild->text(1);
                 // add pairs to files
@@ -471,9 +475,10 @@ void MainWindow::showDeleteConfirmation(
 
     layout->addWidget(listWidget);
 
-    if (originalCount > 0){
+    if (originalCount > 0) {
         label->setTextFormat(Qt::RichText);
-        label->setText(label->text() + "<br><b>You have: " + QString::number(originalCount) + " original files selected. </b>");
+        label->setText(label->text() + "<br><b>You have: "
+                       + QString::number(originalCount) + " original files selected. </b>");
     }
 
     QDialogButtonBox *buttonBox =
@@ -498,8 +503,9 @@ void MainWindow::showDeleteConfirmation(
         }
 
         if (!failedDeletions.isEmpty()) {
-            QString errorMsg = "Failed to delete the following files:\n" + failedDeletions.join("\n");
-            QMessageBox::warning(this, "Deletion Failed",errorMsg);
+            QString errorMsg = "Failed to delete the following files:\n"
+                               + failedDeletions.join("\n");
+            QMessageBox::warning(this, "Deletion Failed", errorMsg);
         } else {
             QMessageBox::information(this, "Success", "Selected files deleted successfully.");
         }
@@ -517,7 +523,7 @@ void MainWindow::on_HowUseBTN_clicked() {
     tutorial->activateWindow();  // Give focus
 }
 
-void MainWindow::onCancelBTN_clicked(){
+void MainWindow::onCancelBTN_clicked() {
     // flag the cancel boolean
     this->setCancelButtonState(true);
 }
