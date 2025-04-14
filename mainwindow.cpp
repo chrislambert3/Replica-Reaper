@@ -5,6 +5,13 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), manager(new FileManager()) {
     ui->setupUi(this);
+
+    // Set up UI styling file
+    QFile styleFile(":/assets/assets/styles.qss");
+    if (styleFile.open(QFile::ReadOnly)) {
+        QString style = styleFile.readAll();
+        this->setStyleSheet(style);  // Applies only to this window and its widgets
+    }
     ui->progressBar->setValue(0);
     this->setWindowTitle("Replica Reaper");
     // :/assets/assets... will resolve universally
