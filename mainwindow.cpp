@@ -50,26 +50,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->DelAllBTN, &QPushButton::clicked, this,
             &MainWindow::onDelAllBTN_clicked);
 
-    // Creates a tray icon when Program is hidden
-    // Related to background process feature
 
-    QSystemTrayIcon* trayIcon = new QSystemTrayIcon(this);
-    // trayIcon->setIcon(QIcon(":/assets/assets/rr-logo.png"));
-
-    QMenu* trayMenu = new QMenu(this);
-    QAction* restoreAction = new QAction("Show", this);
-    QAction* quitAction = new QAction("Exit", this);
-
-    trayMenu->addAction(restoreAction);
-    trayMenu->addAction(quitAction);
-
-    trayIcon->setContextMenu(trayMenu);
-    trayIcon->show();
-
-    connect(restoreAction, &QAction::triggered, this, &MainWindow::show);
-    connect(quitAction, &QAction::triggered, qApp, &QApplication::quit);
-
-    // Tray icon end
     // Download check loop start
 
     QFileSystemWatcher* watcher = new QFileSystemWatcher(this);

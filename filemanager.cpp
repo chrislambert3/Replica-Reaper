@@ -5,11 +5,12 @@
 FileManager::FileManager(QObject* parent)
     : QObject(parent), trayIcon(new QSystemTrayIcon()), ui(nullptr) {
     // can also set our custon icon like this:
+
+    // Creates a tray icon when Program is hidden
+    // Related to background process feature
     // trayIcon->setIcon(QIcon(":/icon.png")); // Set an icon (optional, ensure
-    // the path is correct sets a standard tray icon for now
-    this->trayIcon->setIcon(
-        QApplication::style()->standardIcon(QStyle::SP_MessageBoxInformation));
-     quitAction = new QAction("Exit Replica Reaper", this);
+    this->trayIcon->setIcon(QIcon(":/assets/assets/rr-logo.png"));
+    quitAction = new QAction("Exit Replica Reaper", this);
     // map the action to close the full application, (qApp is a universal pointer
     // to the running application)
     connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
