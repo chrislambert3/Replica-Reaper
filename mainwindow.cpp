@@ -13,27 +13,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Tree Widget config:
     ui->treeWidget->setColumnCount(3);  // Single column for file names
-    // Make columns resizable
-    ui->treeWidget->header()->setSectionResizeMode(
-        0, QHeaderView::Interactive);  // Filename
-    ui->treeWidget->header()->setSectionResizeMode(
-        1, QHeaderView::Interactive);  // File Path
-    ui->treeWidget->header()->setSectionResizeMode(
-        2, QHeaderView::ResizeToContents);  // Date Modified
-    ui->treeWidget->header()->setMaximumSectionSize(300);
     ui->treeWidget->setHeaderLabels(
         {"Filename", "File Path", "Date Modified"});  // tree columns
     ui->treeWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     ui->treeWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    ui->treeWidget->header()->setSectionResizeMode(
-        0, QHeaderView::ResizeToContents);  // File path length fits conted
-    ui->treeWidget->header()->setSectionResizeMode(
-        1, QHeaderView::ResizeToContents);  // Date Modified fits content
-    // ui->treeWidget->setColumnWidth(0, 1000);
-    // ui->treeWidget->setMinimumWidth(1000);
-    // set specifation for the list tree
-    // ui->treeWidget->setColumnHidden(1,true);
-    // ui->treeWidget->setColumnWidth(2, 2); // Setting the second column to
 
     // Button Connections:
     // this links the button on the UI to the event function
@@ -208,14 +191,29 @@ void MainWindow::ShowDupesInUI(const FileManager &f) {
             childItem->setCheckState(0, Qt::Unchecked);
         }
     }
-    ui->treeWidget->header()->setSectionResizeMode(
-        0, QHeaderView::ResizeToContents);  // Filename
-    ui->treeWidget->header()->setSectionResizeMode(
-        1, QHeaderView::Interactive);  // File Path
-    ui->treeWidget->header()->setSectionResizeMode(
-        2, QHeaderView::ResizeToContents);  // Date Modified
-    ui->treeWidget->setColumnWidth(1, 200);
-    ui->treeWidget->setColumnWidth(2, 150);
+
+    QHeaderView* header = ui->treeWidget->header();
+    // Enable interactive resizing
+    header->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    header->setSectionResizeMode(1, QHeaderView::Stretch);
+    header->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+
+    // This allows the second column to be resized
+    // in case the user wants to stretch out the filepath column
+    auto colWidth = ui->treeWidget->columnWidth(0);
+    header->setSectionResizeMode(0, QHeaderView::Interactive);
+    ui->treeWidget->setColumnWidth(0, colWidth);
+
+    // Clamps the widget to not stretch beyond the viewport
+    connect(ui->treeWidget->header(), &QHeaderView::sectionResized,
+            this, [=](int logicalIndex, int oldSize, int newSize) {
+                if (logicalIndex == 0 && newSize > colWidth) {
+                    ui->treeWidget->setColumnWidth(0, colWidth);
+                }
+            });
+
+    // Prevent column resizing beyond viewport width
+    header->setStretchLastSection(false);
 }
 
 // Function to manage parent-child checkbox behavior
