@@ -49,6 +49,34 @@ MainWindow::MainWindow(QWidget *parent)
     // Connect the "DelAllBTN" to the onDelAllBTN_clicked function
     connect(ui->DelAllBTN, &QPushButton::clicked, this,
             &MainWindow::onDelAllBTN_clicked);
+
+
+    // Download check loop start
+
+    QFileSystemWatcher* watcher = new QFileSystemWatcher(this);
+    watcher->addPath(QStandardPaths::writableLocation(QStandardPaths::DownloadLocation));
+
+    QTimer* debounceTimer = new QTimer(this);
+    debounceTimer->setSingleShot(true);
+    debounceTimer->setInterval(500);
+
+    // wrapper around file checker to prevent multiple of same calls
+    connect(watcher, &QFileSystemWatcher::directoryChanged, this, [=](const QString& path){
+        debounceTimer->start();  // Restart the debounce timer
+    });
+
+    connect(debounceTimer, &QTimer::timeout, this, [=](){
+        // get newest file
+        QDir dir(QStandardPaths::writableLocation(QStandardPaths::DownloadLocation));
+        dir.setFilter(QDir::Files | QDir::NoSymLinks);
+        dir.setSorting(QDir::Time | QDir::Reversed);
+
+        QFileInfoList fileList = dir.entryInfoList();
+
+        qDebug() << "NEWFILE: " << fileList.last().absoluteFilePath();
+    });
+
+    // Download check loop end
 }
 
 
@@ -61,11 +89,11 @@ MainWindow::~MainWindow() {
 // Overloaded function that automatically gets called when user closes UI
 void MainWindow::closeEvent(QCloseEvent *event) {
     // if the "Run in Background" button is checked,
-    if (this->backgroundCheck) {
+    if (this->settings.backgroundCheck) {
         // Program will run in background to check for
         // Updates to DownLoad Directory
-        this->hide;
-        event->ignore;
+        this->hide();
+        event->ignore();
     } else {
         qApp->quit();  // Close the full application
         event->accept();
@@ -405,15 +433,4 @@ void MainWindow::on_HowUseBTN_clicked() {
     tutorial->show();
     tutorial->raise();           // Bring to front
     tutorial->activateWindow();  // Give focus
-}
-
-void MainWindow::on_SettBTN_clicked() {
-    Settings *settings = new Settings(this);
-    settings->setState(this->backgroundCheck);
-    settings->setModal(true);
-    settings->exec();
-}
-
-void MainWindow::setBackgroundState(bool state) {
-    this->backgroundCheck = state;
 }
