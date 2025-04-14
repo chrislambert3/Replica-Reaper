@@ -49,7 +49,6 @@ MainWindow::MainWindow(QWidget *parent)
     // Connect the "DelAllBTN" to the onDelAllBTN_clicked function
     connect(ui->DelAllBTN, &QPushButton::clicked, this,
             &MainWindow::onDelAllBTN_clicked);
-
 }
 
 MainWindow::~MainWindow() {
