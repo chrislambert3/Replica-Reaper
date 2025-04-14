@@ -7,9 +7,9 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     ui->progressBar->setValue(0);
     this->setWindowTitle("Replica Reaper");
+    // :/assets/assets... will resolve universally
+    this->setWindowIcon(QIcon(":/assets/assets/rr-logo.png"));
     manager->setMainWindow(this);
-    // sets the background state
-    this->backgroundCheck = false;
 
     // Tree Widget config:
     ui->treeWidget->setColumnCount(3);  // Single column for file names
@@ -51,9 +51,11 @@ MainWindow::MainWindow(QWidget *parent)
             &MainWindow::onDelAllBTN_clicked);
 }
 
+
 MainWindow::~MainWindow() {
     delete ui;
     delete manager;
+    delete tutorial;
 }
 
 // Overloaded function that automatically gets called when user closes UI
@@ -333,7 +335,12 @@ qint64 MainWindow::getDirectorySize(const QString &dirPath) {
 
     return totalSize;
 }
-
+void MainWindow::on_SettBTN_clicked() {
+    Settings *settings = new Settings(this);
+    settings->setState(this->settings.backgroundCheck);
+    settings->setModal(true);
+    settings->exec();
+}
 void MainWindow::showDeleteConfirmation(
         const list<pair<QString, QString>> &files) {
     QDialog dialog(this);

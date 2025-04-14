@@ -5,6 +5,7 @@
 #include <QProgressBar>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
+#include <QTextBrowser>
 #include <filesystem>
 #include <string>
 #include "../filemanager.hpp"
@@ -59,6 +60,21 @@ class FileManagerTest : public QObject {
   void testFileInfoSetHash();
   void testFileInfoComparisonOperators();
   void testFileInfoDateCreated();
+
+  // Tutorial class Tests:
+  void test_TutorialTextBrowserContent();
+  void test_TutorialExternalLinksEnabled();
+  void test_TutorialButtonsCreation();
+
+  // Settings class Tests:
+  void test_SettingsComponentCreation();
+  void test_SettingsApplySettings();
+  void test_SettingsCancelButtonClicked();
+  void test_SettingsApplyButtonClicked();
+  void test_SettingsSetGetState();
+
+
+
 
   // cleanupTestCase() will be called after the last test function was executed.
   void cleanupTestCase();
@@ -472,6 +488,84 @@ void FileManagerTest::testUncheckingAllChildSetsParentUncheck() {
 
   // Verify that the parent item is set to "Unchecked"
   QCOMPARE(parentItem->checkState(0), Qt::Unchecked);
+}
+
+void FileManagerTest::test_TutorialTextBrowserContent() {
+    Tutorial tutorial;
+    auto* textBrowser = tutorial.findChild<QTextBrowser *>("textBrowser");
+    QVERIFY(textBrowser);
+    QVERIFY(textBrowser->toHtml().contains("How to Use Replica Reaper"));
+    QVERIFY(textBrowser->toHtml().contains("Run the Reaper"));
+}
+
+void FileManagerTest::test_TutorialExternalLinksEnabled() {
+    Tutorial tutorial;
+    auto* textBrowser = tutorial.findChild<QTextBrowser*>("textBrowser");
+    QVERIFY(textBrowser);
+    QVERIFY(textBrowser->openExternalLinks());
+}
+
+void FileManagerTest::test_TutorialButtonsCreation() {
+    Tutorial tutorial;
+    QStringList buttonNames = {"tryDownBTN", "tryDocBTN", "tryPicBTN", "tryDeskBTN"};
+    for (const QString& btnName : buttonNames) {
+        QPushButton* btn = tutorial.findChild<QPushButton*>(btnName);
+        // Check if the button was created
+        QVERIFY(btn);
+    }
+}
+
+void FileManagerTest::test_SettingsComponentCreation() {
+    // Verify all componest have been created
+    Settings dialog;
+    QCheckBox *backgroundCheckBox = dialog.findChild<QCheckBox*>("bgCheckBox");
+    QVERIFY(backgroundCheckBox);
+
+    QPushButton *applyButton = dialog.findChild<QPushButton*>("applyBTN");
+    QVERIFY(applyButton);
+
+    QPushButton *cancelButton = dialog.findChild<QPushButton*>("cancelBTN");
+    QVERIFY(cancelButton);
+}
+
+void FileManagerTest::test_SettingsSetGetState() {
+    Settings settings;
+    settings.setState(true);
+    QVERIFY(settings.getState() == true);
+
+    settings.setState(false);
+    QVERIFY(settings.getState() == false);
+}
+
+void FileManagerTest::test_SettingsApplySettings() {
+    MainWindow mainWindow;
+    Settings settings(&mainWindow);
+    settings.setState(true);
+    settings.applySettings();
+    QVERIFY(mainWindow.getBackgroundState() == true);
+
+    settings.setState(false);
+    settings.applySettings();
+    QVERIFY(mainWindow.getBackgroundState() == false);
+}
+
+void FileManagerTest::test_SettingsApplyButtonClicked() {
+    MainWindow mainWindow;
+    Settings settings(&mainWindow);
+    settings.setState(true);
+    settings.onApplyBTN_clicked();
+    QVERIFY(mainWindow.getBackgroundState() == true);
+    QVERIFY(settings.isHidden());
+}
+
+void FileManagerTest::test_SettingsCancelButtonClicked() {
+    // Verify that settings closes when cancel button is clicked
+    MainWindow window;
+    Settings settings(&window);
+    settings.show();
+    settings.onCancelBTN_clicked();
+    QVERIFY(settings.isHidden());
+    QVERIFY(window.getBackgroundState() == false);
 }
 
 // Cleans up after all test functions have executed

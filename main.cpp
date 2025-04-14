@@ -10,8 +10,7 @@ namespace fs = std::filesystem;
 int main(int argc, char* argv[]) {
     if (!DEBUG) {
         QApplication app(argc, argv);
-        QWidget widget;
-        MainWindow window(&widget);
+        MainWindow window;
         window.show();
         return app.exec();
     } else if (DEBUG) {
