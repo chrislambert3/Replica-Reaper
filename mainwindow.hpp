@@ -12,6 +12,9 @@
 #include <QDialogButtonBox>
 #include <QMessageBox>
 #include <QStandardPaths>
+#include <QFileSystemWatcher>
+#include <QTimer>
+#include <QDir>
 #include <filesystem>
 #include <iostream>
 #include <string>
