@@ -163,6 +163,7 @@ void MainWindow::onReaperButtonClicked() {
  * output: UI display with a list of duplcates
  */
 void MainWindow::ShowDupesInUI(const FileManager &f) {
+    ui->treeWidget->blockSignals(true);
     QString out;
     for (auto it = f.Dupes.begin(); it != f.Dupes.end(); ++it) {
         // Make a parent item for the list tree widget
@@ -212,8 +213,10 @@ void MainWindow::ShowDupesInUI(const FileManager &f) {
                 }
             });
 
+    // helper function to resize widget colums when expanded or collapsed
     // Prevent column resizing beyond viewport width
     header->setStretchLastSection(false);
+    ui->treeWidget->blockSignals(false);
 }
 
 // Function to manage parent-child checkbox behavior
@@ -228,15 +231,21 @@ void MainWindow::onTreeItemChanged(QTreeWidgetItem *item) {
     if (item->parent() == nullptr) {
         // Get the check status of the parent
         Qt::CheckState newState = item->checkState(0);
+        // special case to uncheck the oringial file when parent in unchecked
+        if(newState == Qt::Unchecked){
+            item->child(0)->setCheckState(0, newState);
+        }
         // set all the childs states to match the parents
-        for (int i = 0; i < item->childCount(); ++i) {
+        // (Excluding the original file at index 0)
+        for (int i = 1; i < item->childCount(); ++i) {
             item->child(i)->setCheckState(0, newState);
         }
     } else {  // If a child item is toggled
         QTreeWidgetItem *parent = item->parent();
         bool allChecked = true, anyChecked = false;
         // compare all the child elements to see if some, all, or none are checked
-        for (int i = 0; i < parent->childCount(); ++i) {
+        // (Excluding the original file at index 0)
+        for (int i = 1; i < parent->childCount(); ++i) {
             Qt::CheckState state = parent->child(i)->checkState(0);
             if (state == Qt::Checked) anyChecked = true;
             if (state != Qt::Checked) allChecked = false;
