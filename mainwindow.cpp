@@ -5,6 +5,16 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), manager(new FileManager()) {
     ui->setupUi(this);
+    // hide the cancel button initially
+    ui->CancelBTN->setVisible(false);
+    // ui->CancelBTN->setObjectName("CancelBTN");
+
+    // Set up UI styling file
+    QFile styleFile(":/assets/assets/styles.qss");
+    if (styleFile.open(QFile::ReadOnly)) {
+        QString style = styleFile.readAll();
+        this->setStyleSheet(style);  // Applies only to this window and its widgets
+    }
     ui->progressBar->setValue(0);
     this->setWindowTitle("Replica Reaper");
     // :/assets/assets... will resolve universally
@@ -13,27 +23,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Tree Widget config:
     ui->treeWidget->setColumnCount(3);  // Single column for file names
-    // Make columns resizable
-    ui->treeWidget->header()->setSectionResizeMode(
-        0, QHeaderView::Interactive);  // Filename
-    ui->treeWidget->header()->setSectionResizeMode(
-        1, QHeaderView::Interactive);  // File Path
-    ui->treeWidget->header()->setSectionResizeMode(
-        2, QHeaderView::ResizeToContents);  // Date Modified
-    ui->treeWidget->header()->setMaximumSectionSize(300);
     ui->treeWidget->setHeaderLabels(
         {"Filename", "File Path", "Date Modified"});  // tree columns
     ui->treeWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     ui->treeWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    ui->treeWidget->header()->setSectionResizeMode(
-        0, QHeaderView::ResizeToContents);  // File path length fits conted
-    ui->treeWidget->header()->setSectionResizeMode(
-        1, QHeaderView::ResizeToContents);  // Date Modified fits content
-    // ui->treeWidget->setColumnWidth(0, 1000);
-    // ui->treeWidget->setMinimumWidth(1000);
-    // set specifation for the list tree
-    // ui->treeWidget->setColumnHidden(1,true);
-    // ui->treeWidget->setColumnWidth(2, 2); // Setting the second column to
 
     // Button Connections:
     // this links the button on the UI to the event function
@@ -49,6 +42,15 @@ MainWindow::MainWindow(QWidget *parent)
     // Connect the "DelAllBTN" to the onDelAllBTN_clicked function
     connect(ui->DelAllBTN, &QPushButton::clicked, this,
             &MainWindow::onDelAllBTN_clicked);
+    // Connect the "CancelBTN" to the onCancelBTN_clicked function
+    connect(ui->CancelBTN, &QPushButton::clicked, this,
+            &MainWindow::onCancelBTN_clicked);
+    // Connect the "SettBTN" to the onSettBTN_clicked function
+    connect(ui->SettBTN, &QPushButton::clicked, this,
+            &MainWindow::onSettBTN_clicked);
+    // Connect the "HowUseBTN" to the onHowUseBTN_clicked function
+    connect(ui->HowUseBTN, &QPushButton::clicked, this,
+            &MainWindow::onHowUseBTN_clicked);
 
 
     // Download check loop start
@@ -124,6 +126,7 @@ void MainWindow::onReaperButtonClicked() {
     }
     // disable the button before reaping
     ui->RunReaperBTN->setEnabled(false);
+    ui->CancelBTN->setVisible(true);
     // set the status on the status bar
     ui->statusbar->showMessage("Scanning Files...");
 
@@ -144,6 +147,17 @@ void MainWindow::onReaperButtonClicked() {
     // Loop through each file and hash it (prints to console for now)
 
     for (int i = 0; i < filePaths.size(); ++i) {
+        // If the cancel button was flagged
+        if (this->getCancelButtonState()) {
+            this->setCancelButtonState(false);  // reset state
+            ui->treeWidget->clear();  // clear table (if any)
+            manager->ClearData();  // clear filemanager data
+            ui->CancelBTN->setVisible(false);  // show cancel button
+            ui->RunReaperBTN->setEnabled(true);  // re-enable reaper button
+            ui->progressBar->setValue(0);  // reset the progress bar to 0
+            manager->ShowNotification("Reaping Canceled", "Scanning has cancelled sucessfully");
+            return;
+        }
         // setup for FileInfo class
         fs::path fPath = filePaths[i].toStdString();
         FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
@@ -167,6 +181,7 @@ void MainWindow::onReaperButtonClicked() {
     manager->ShowNotification("Hashing Complete", message);
     ShowDupesInUI(*manager);
     // re-enable the button
+    ui->CancelBTN->setVisible(false);
     ui->RunReaperBTN->setEnabled(true);
     // clear the filemanager maps
     manager->ClearData();
@@ -180,6 +195,7 @@ void MainWindow::onReaperButtonClicked() {
  * output: UI display with a list of duplcates
  */
 void MainWindow::ShowDupesInUI(const FileManager &f) {
+    ui->treeWidget->blockSignals(true);
     QString out;
     for (auto it = f.Dupes.begin(); it != f.Dupes.end(); ++it) {
         // Make a parent item for the list tree widget
@@ -191,6 +207,11 @@ void MainWindow::ShowDupesInUI(const FileManager &f) {
                     .getFilePath()
                     .string()));  // Next column value to go under FilePath
         parentHashItem->setText(2, it->second.front().getDate().toString());
+        parentHashItem->setToolTip(
+            1, QString::fromStdString(
+                it->second.front()
+                    .getFilePath()
+                    .string()));
         parentHashItem->setCheckState(0, Qt::Unchecked);  // Default unchecked
         // add the parent item to tree
         ui->treeWidget->addTopLevelItem(parentHashItem);
@@ -202,18 +223,54 @@ void MainWindow::ShowDupesInUI(const FileManager &f) {
             QTreeWidgetItem *childItem = new QTreeWidgetItem(parentHashItem);
             childItem->setText(0, a.getFileName());  // set the filename
             childItem->setText(1, out);              // sets the filepath column
+            childItem->setToolTip(1, out);
             childItem->setText(2, a.getDate().toString());
             childItem->setCheckState(0, Qt::Unchecked);
         }
     }
-    ui->treeWidget->header()->setSectionResizeMode(
-        0, QHeaderView::ResizeToContents);  // Filename
-    ui->treeWidget->header()->setSectionResizeMode(
-        1, QHeaderView::Interactive);  // File Path
-    ui->treeWidget->header()->setSectionResizeMode(
-        2, QHeaderView::ResizeToContents);  // Date Modified
-    ui->treeWidget->setColumnWidth(1, 200);
-    ui->treeWidget->setColumnWidth(2, 150);
+
+    QHeaderView* header = ui->treeWidget->header();
+    // Enable interactive resizing
+    header->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    header->setSectionResizeMode(1, QHeaderView::Stretch);
+    header->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+
+    // This allows the second column to be resized
+    // in case the user wants to stretch out the filepath column
+    auto colWidth = ui->treeWidget->columnWidth(0);
+    header->setSectionResizeMode(0, QHeaderView::Interactive);
+    ui->treeWidget->setColumnWidth(0, colWidth);
+
+    // Clamps the widget to not stretch beyond the viewport
+    connect(ui->treeWidget->header(), &QHeaderView::sectionResized,
+            this, [=](int logicalIndex, int oldSize, int newSize) {
+                if (logicalIndex == 0 && newSize > colWidth) {
+                    ui->treeWidget->setColumnWidth(0, colWidth);
+                }
+            });
+    // helper function to resize widget colums when expanded or collapsed
+    auto adjustColumnWidth = [=]() {
+        QHeaderView* header = ui->treeWidget->header();
+        // Temporarily resize to fit all visible content
+        header->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+        // Lock new width
+        int updatedColWidth = ui->treeWidget->columnWidth(0);
+        header->setSectionResizeMode(0, QHeaderView::Interactive);
+        ui->treeWidget->setColumnWidth(0, updatedColWidth);
+    };
+    // When a parent is expanded
+    connect(ui->treeWidget, &QTreeWidget::itemExpanded,
+            this, [=](QTreeWidgetItem *) {
+                adjustColumnWidth();
+            });
+    // When a parent is collapsed
+    connect(ui->treeWidget, &QTreeWidget::itemCollapsed,
+            this, [=](QTreeWidgetItem *) {
+                adjustColumnWidth();
+            });
+    // Prevent column resizing beyond viewport width
+    header->setStretchLastSection(false);
+    ui->treeWidget->blockSignals(false);
 }
 
 // Function to manage parent-child checkbox behavior
@@ -228,15 +285,21 @@ void MainWindow::onTreeItemChanged(QTreeWidgetItem *item) {
     if (item->parent() == nullptr) {
         // Get the check status of the parent
         Qt::CheckState newState = item->checkState(0);
+        // special case to uncheck the oringial file when parent in unchecked
+        if (newState == Qt::Unchecked) {
+            item->child(0)->setCheckState(0, newState);
+        }
         // set all the childs states to match the parents
-        for (int i = 0; i < item->childCount(); ++i) {
+        // (Excluding the original file at index 0)
+        for (int i = 1; i < item->childCount(); ++i) {
             item->child(i)->setCheckState(0, newState);
         }
     } else {  // If a child item is toggled
         QTreeWidgetItem *parent = item->parent();
         bool allChecked = true, anyChecked = false;
         // compare all the child elements to see if some, all, or none are checked
-        for (int i = 0; i < parent->childCount(); ++i) {
+        // (Excluding the original file at index 0)
+        for (int i = 1; i < parent->childCount(); ++i) {
             Qt::CheckState state = parent->child(i)->checkState(0);
             if (state == Qt::Checked) anyChecked = true;
             if (state != Qt::Checked) allChecked = false;
@@ -289,6 +352,15 @@ list<pair<QString, QString>> MainWindow::getCheckedItems() {
 
         // Skip if the parent is unchecked (so no childs are checked)
         if (parentItem->checkState(0) == Qt::Unchecked) {
+            // special case for if the original file is checked
+            auto firstChild = parentItem->child(0);
+            if (firstChild->checkState(0) == Qt::Checked) {
+                auto filename = firstChild->text(0);
+                auto filepath = firstChild->text(1);
+                // add pairs to files
+                std::pair<QString, QString> pair(filename, filepath);
+                files.push_back(pair);
+            }
             continue;
         }
 
@@ -363,7 +435,7 @@ qint64 MainWindow::getDirectorySize(const QString &dirPath) {
 
     return totalSize;
 }
-void MainWindow::on_SettBTN_clicked() {
+void MainWindow::onSettBTN_clicked() {
     Settings *settings = new Settings(this);
     settings->setState(this->settings.backgroundCheck);
     settings->setModal(true);
@@ -381,13 +453,39 @@ void MainWindow::showDeleteConfirmation(
     QLabel *label =
         new QLabel("Are you sure you want to delete the following files?");
     layout->addWidget(label);
-
-    QListWidget *listWidget = new QListWidget();
-    // Only add the first element of each pair (filename)
-    for (const auto &filePair : files) {
-        listWidget->addItem(filePair.first);
+    // Get the original file paths from tree widget parents
+    std::unordered_set<QString> originalPaths;
+    for (int i = 0; i < ui->treeWidget->topLevelItemCount(); ++i) {
+        QTreeWidgetItem *parentItem = ui->treeWidget->topLevelItem(i);
+        originalPaths.insert(parentItem->text(1));
     }
+    // Make a list widget to populate files
+    QListWidget *listWidget = new QListWidget();
+    int originalCount = 0;
+    for (const auto &filePair : files) {
+        auto& filename = filePair.first;
+        auto& filepath = filePair.second;
+        QListWidgetItem *item = new QListWidgetItem(filename);
+
+        if (originalPaths.find(filepath) != originalPaths.end()) {
+            originalCount++;
+            item->setText(filename + " [ORIGINAL]");
+
+            QFont boldFont = item->font();
+            boldFont.setBold(true);
+            item->setFont(boldFont);
+            item->setForeground(Qt::darkRed);  // Optional: visually distinct
+        }
+        listWidget->addItem(item);
+    }
+
     layout->addWidget(listWidget);
+
+    if (originalCount > 0) {
+        label->setTextFormat(Qt::RichText);
+        label->setText(label->text() + "<br><b>You have: "
+                       + QString::number(originalCount) + " original files selected. </b>");
+    }
 
     QDialogButtonBox *buttonBox =
         new QDialogButtonBox(QDialogButtonBox::Yes | QDialogButtonBox::No);
@@ -399,38 +497,39 @@ void MainWindow::showDeleteConfirmation(
                    &QDialog::reject);
 
     if (dialog.exec() == QDialog::Accepted) {
-        // temperary "success flag"
-        QMessageBox::information(this, "Success",
-                             "Selected files deleted successfully.");
         // Delete files
         // Deleting File Logic:
-        /*
         QStringList failedDeletions;
-
         for (const auto& filePair : files) {
             QString fullPath = filePair.second;
             QFile file(fullPath);
             if (!file.remove()) {
             failedDeletions.append(fullPath);
+            }
         }
-    }
 
         if (!failedDeletions.isEmpty()) {
-            QString errorMsg = "Failed to delete the following files:\n" +
-        failedDeletions.join("\n"); QMessageBox::warning(this, "Deletion Failed",
-        errorMsg); } else { QMessageBox::information(this, "Success", "Selected
-        files deleted successfully.");
-    }*/
+            QString errorMsg = "Failed to delete the following files:\n"
+                               + failedDeletions.join("\n");
+            QMessageBox::warning(this, "Deletion Failed", errorMsg);
+        } else {
+            QMessageBox::information(this, "Success", "Selected files deleted successfully.");
+        }
     } else {
-        // Canceled
+        // User Canceled
     }
 }
 
-void MainWindow::on_HowUseBTN_clicked() {
+void MainWindow::onHowUseBTN_clicked() {
     if (!tutorial) {
         tutorial = new Tutorial(this);
     }
     tutorial->show();
     tutorial->raise();           // Bring to front
     tutorial->activateWindow();  // Give focus
+}
+
+void MainWindow::onCancelBTN_clicked() {
+    // flag the cancel boolean
+    this->setCancelButtonState(true);
 }

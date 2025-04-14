@@ -49,22 +49,26 @@ class MainWindow : public QMainWindow {
     void onTreeItemChanged(QTreeWidgetItem *item);
     void onDelSelBTN_clicked();
     void onDelAllBTN_clicked();
+    void onCancelBTN_clicked();
     list<pair<QString, QString>> getCheckedItems();
     void setBackgroundState(bool state) { settings.backgroundCheck = state;}
     bool getBackgroundState() { return settings.backgroundCheck;}
+    void setCancelButtonState(bool state) { cancelButtonState = state; }
+    bool getCancelButtonState() const { return cancelButtonState; }
     void closeEvent(QCloseEvent *event);
     qint64 PythonAutoTestHelper(QString InputPath);
     qint64 getDirectorySize(const QString &dirPath);
     ~MainWindow();
 
  private slots:
-    void on_SettBTN_clicked();
-    void on_HowUseBTN_clicked();
+    void onSettBTN_clicked();
+    void onHowUseBTN_clicked();
 
  private:
     Ui::MainWindow *ui;
     FileManager *manager;
     Tutorial *tutorial = nullptr;
     AppSettings settings;
+    bool cancelButtonState = false;
 };
 #endif /* MAINWINDOW_HPP */

@@ -430,7 +430,8 @@ void FileManagerTest::testCheckingParentMarksAllChildren() {
   mainWindow.onTreeItemChanged(parentItem);
 
   // Verify that all child items of the parent are checked after
-  for (int i = 0; i < 3; ++i) {
+  // (excluding the original file at index 0)
+  for (int i = 1; i < 3; ++i) {
     QCOMPARE(parentItem->child(i)->checkState(0), Qt::Checked);
   }
 }
@@ -453,7 +454,8 @@ void FileManagerTest::testUncheckingChildSetsParentPartial() {
     childItem->setCheckState(0, Qt::Checked);
   }
   // Simulate one of the child checkboxes being unchecked
-  QTreeWidgetItem *childItem = parentItem->child(0);
+  // Using index 1 because index 0 is for the original file
+  QTreeWidgetItem *childItem = parentItem->child(1);
   childItem->setCheckState(0, Qt::Unchecked);
   // Run logic to partially check the parent
   mainWindow.onTreeItemChanged(childItem);
