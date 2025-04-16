@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Installer>
+    <Name>Replica Reaper</Name>
+    <Version>1.0.0</Version>
+    <Title>Replica Reaper Installer</Title>
+    <Publisher>chrislambert3</Publisher>
+    <InstallerWindowIcon>rr-logo</InstallerWindowIcon>
+    <InstallerApplicationIcon>rr-logo</InstallerApplicationIcon>
+    <Logo>rr-logo.png</Logo>
+    <RunProgram>@TargetDir@/Replica-Reaper.exe</RunProgram>
+    <StyleSheet>style.qss</StyleSheet>
+    <StartMenuDir>Replica Reaper</StartMenuDir>
+    <MaintenanceToolName>rr-maintenancetool</MaintenanceToolName>
+    <TargetDir>@HomeDir@/Replica Reaper</TargetDir>
+    <WizardDefaultHeight>400</WizardDefaultHeight>
+</Installer>
