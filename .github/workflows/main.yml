@@ -3,12 +3,12 @@ name: Self-Hosted Windows Build
 on:
   push:
     branches:
-      - 'main'
-      - '*-*'
+      - "main"
+      - "*-*"
   pull_request:
     branches:
-      - 'main'
-      - '*-*'
+      - "main"
+      - "*-*"
   workflow_dispatch:
 
 jobs:
@@ -17,72 +17,90 @@ jobs:
     runs-on: self-hosted
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Zip and Transfer Files to Windows VM
-      run: |
-        echo "Zipping and transferring files..."
-        zip -r build.zip . -x "*.git/*"
-        scp -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no build.zip vboxuser@windowsvm:build.zip
-        rm build.zip
+      - name: Zip and Transfer Files to Windows VM
+        run: |
+          echo "Zipping and transferring files..."
+          zip -r build.zip . -x "*.git/*"
+          scp -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no build.zip vboxuser@windowsvm:build.zip
+          rm build.zip
 
-    - name: Run cpplint
-      run: cpplint *.cpp *.hpp
+      - name: Run cpplint
+        run: cpplint *.cpp *.hpp UnitTest/*.cpp
 
-    - name: Extract and Setup on Windows VM
-      run: |
-        ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no vboxuser@windowsvm << EOF
-        echo "Extracting files and setting up directories..."
-        powershell -command "Remove-Item -Recurse -Force C:\\Users\\vboxuser\\RR-Build"
-        powershell -command "Expand-Archive C:\\Users\\vboxuser\\build.zip C:\\Users\\vboxuser\\RR-Build"
-        EOF
+      - name: Extract and Setup on Windows VM
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no vboxuser@windowsvm << EOF
+          echo "Extracting files and setting up directories..."
+          powershell -command "Remove-Item -Recurse -Force C:\\Users\\vboxuser\\RR-Build"
+          powershell -command "Expand-Archive C:\\Users\\vboxuser\\build.zip C:\\Users\\vboxuser\\RR-Build"
+          EOF
 
-    - name: Build Application on Windows VM
-      run: |
-        ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no vboxuser@windowsvm << EOF
-        echo "Starting build process..."
-        C:\\Qt\\6.8.2\\mingw_64\\bin\\qtenv2.bat
-        cmake -G Ninja -S C:\\Users\\vboxuser\\RR-Build -B C:\\Users\\vboxuser\\RR-App "-DCMAKE_BUILD_TYPE:STRING=Release"
-        cd C:\\Users\\vboxuser\\RR-App
-        ninja
+      - name: Build Application
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no vboxuser@windowsvm << EOF
+          echo "Starting build process..."
+          C:\\Qt\\6.8.2\\mingw_64\\bin\\qtenv2.bat
+          cmake -G Ninja -S C:\\Users\\vboxuser\\RR-Build -B C:\\Users\\vboxuser\\RR-App "-DCMAKE_BUILD_TYPE:STRING=Release"
+          cd C:\\Users\\vboxuser\\RR-App
+          ninja
 
-        echo "Packaging Dependencies..."
-        powershell -command "cp C:\\Users\\vboxuser\\RR-App\\Replica-Reaper.exe C:\\Users\\vboxuser\\RR-Executable\\Replica-Reaper.exe"
-        powershell -command "cp C:\\Users\\vboxuser\\RR-App\\UnitTest\\UnitTests.exe C:\\Users\\vboxuser\\RR-UnitTests\\UnitTests.exe"
+          echo "Packaging Dependencies..."
+          powershell -command "cp C:\\Users\\vboxuser\\RR-App\\Replica-Reaper.exe C:\\Users\\vboxuser\\RR-Executable\\Replica-Reaper.exe"
+          powershell -command "cp C:\\Users\\vboxuser\\RR-App\\UnitTest\\UnitTests.exe C:\\Users\\vboxuser\\RR-UnitTests\\UnitTests.exe"
+          powershell -command "cp C:\\Users\\vboxuser\\RR-App\\Replica-Reaper.exe C:\\Users\\vboxuser\\RR-Build\\Installer\\packages\\com.swe.replicareaper\\data\\Replica-Reaper.exe"
 
-        cd C:\\Users\\vboxuser\\RR-Executable
-        windeployqt .
-        cd C:\\Users\\vboxuser\\RR-UnitTests
-        windeployqt .
+          cd C:\\Users\\vboxuser\\RR-Executable
+          windeployqt .
+          cd C:\\Users\\vboxuser\\RR-UnitTests
+          windeployqt .
+          cd C:\\Users\\vboxuser\\RR-Build\\Installer\\packages\\com.swe.replicareaper\\data
+          windeployqt .
 
-        echo "Creating final archive..."
-        powershell -command "Compress-Archive -Path C:\\Users\\vboxuser\\RR-Executable, C:\\Users\\vboxuser\\RR-UnitTests -DestinationPath C:\\Users\\vboxuser\\RR-Executable-UnitTests.zip -Force"
+          echo "Creating final archive..."
+          powershell -command "Compress-Archive -Path C:\\Users\\vboxuser\\RR-Executable, C:\\Users\\vboxuser\\RR-UnitTests -DestinationPath C:\\Users\\vboxuser\\RR-Executable-UnitTests.zip -Force"
 
-        echo "Cleaning up build directories..."
-        powershell -command "Remove-Item -Recurse -Force C:\\Users\\vboxuser\\RR-Build"
-        powershell -command "Remove-Item -Recurse -Force C:\\Users\\vboxuser\\RR-App"
-        powershell -command "New-Item -Path C:\\Users\\vboxuser\\RR-Build -ItemType Directory"
-        powershell -command "New-Item -Path C:\\Users\\vboxuser\\RR-App -ItemType Directory"
-        exit
-        EOF
+          exit
+          EOF
 
-    - name: Run Unit Tests on Windows VM
-      run: |
-        ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no vboxuser@windowsvm << EOF
-        echo "Running Unit Tests..."
-        cd C:\\Users\\vboxuser\\RR-UnitTests
-        C:\\Users\\vboxuser\\RR-UnitTests\\UnitTests.exe
-        exit %ERRORLEVEL%
-        EOF
+      - name: Run Unit Tests
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no vboxuser@windowsvm << EOF
+          echo "Running Unit Tests..."
+          cd C:\\Users\\vboxuser\\RR-UnitTests
+          C:\\Users\\vboxuser\\RR-UnitTests\\UnitTests.exe
+          exit %ERRORLEVEL%
+          EOF
 
-    - name: Copy Artifacts Back
-      if: github.ref == 'refs/heads/main'
-      run: scp -i ~/.ssh/id_ed25519 vboxuser@windowsvm:RR-Executable-UnitTests.zip .
+      - name: Creating Installer
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no vboxuser@windowsvm << EOF
+          echo "Running Installer..."
+          C:\\Qt\\Tools\\QtInstallerFramework\\4.9\\bin\\binarycreator.exe -c RR-Build/Installer/config/config.xml -p RR-Build/Installer/packages RR-win64-Installer
 
-    - name: Upload Artifact to GitHub
-      if: github.ref == 'refs/heads/main'
-      uses: actions/upload-artifact@v4
-      with:
-        name: RR-Executable-UnitTests
-        path: RR-Executable-UnitTests.zip
+          echo "Cleaning up build directories..."
+          powershell -command "Remove-Item -Recurse -Force C:\\Users\\vboxuser\\RR-Build"
+          powershell -command "Remove-Item -Recurse -Force C:\\Users\\vboxuser\\RR-App"
+          powershell -command "New-Item -Path C:\\Users\\vboxuser\\RR-Build -ItemType Directory"
+          powershell -command "New-Item -Path C:\\Users\\vboxuser\\RR-App -ItemType Directory"
+          exit
+          EOF
+
+      - name: Copying Artifacts Back
+        run: |
+          scp -i ~/.ssh/id_ed25519 vboxuser@windowsvm:RR-Executable-UnitTests.zip .
+          scp -i ~/.ssh/id_ed25519 vboxuser@windowsvm:RR-win64-Installer.exe .
+
+      - name: Upload Executable Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RR-Executable-UnitTests
+          path: RR-Executable-UnitTests.zip
+
+      - name: Upload Installer Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RR-Windows-Installer
+          path: RR-win64-Installer.exe
