@@ -19,6 +19,24 @@ set(PROJECT_SOURCES
         mainwindow.ui
 )
 
+# Add trashmanager.hpp so it's visible in all cases
+list(APPEND PROJECT_SOURCES trashmanager.hpp)
+
+# Add platform-specific TrashManager definition
+# This will add the right cpp file to the project source
+# and makes the other file not compile and appear under "Cross Platform Files"
+# HEADER_FILE_ONLY TRUE = treat the file as a .hpp header (not compiled)
+if(WIN32)
+    list(APPEND PROJECT_SOURCES trashmanager_win.cpp)
+    set_source_files_properties(trashmanager_mac.mm PROPERTIES HEADER_FILE_ONLY TRUE)
+    source_group("Cross Platform Files" FILES trashmanager_mac.mm)
+elseif(APPLE)
+    list(APPEND PROJECT_SOURCES trashmanager_mac.mm)
+    set_source_files_properties(trashmanager_mac.mm PROPERTIES COMPILE_FLAGS "-x objective-c++")
+    set_source_files_properties(trashmanager_win.cpp PROPERTIES HEADER_FILE_ONLY TRUE)
+    source_group("Cross Platform Files" FILES trashmanager_win.cpp)
+endif()
+
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(Replica-Reaper
         MANUAL_FINALIZATION
@@ -28,6 +46,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         settings.hpp settings.cpp settings.ui
         tutorial.hpp tutorial.cpp tutorial.ui
         assets.qrc
+        trashmanager.hpp trashmanager_win.cpp trashmanager_mac.mm
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET Replica-Reaper APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -45,6 +64,14 @@ else()
             ${PROJECT_SOURCES}
         )
     endif()
+endif()
+
+# Logic to determine if move to trash feature is implemented
+# Currently only windows has it
+if(WIN32)
+    target_compile_definitions(Replica-Reaper PRIVATE TRASH_AVAILABLE)
+elseif(APPLE)
+    # if mac gets implemented copy line here too
 endif()
 
 target_link_libraries(Replica-Reaper PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)

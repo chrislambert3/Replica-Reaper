@@ -443,6 +443,7 @@ void MainWindow::onSettBTN_clicked() {
 }
 void MainWindow::showDeleteConfirmation(
         const list<pair<QString, QString>> &files) {
+
     QDialog dialog(this);
     dialog.setWindowTitle("Confirm Deletion");
     dialog.setModal(true);
@@ -487,38 +488,85 @@ void MainWindow::showDeleteConfirmation(
                        + QString::number(originalCount) + " original files selected. </b>");
     }
 
-    QDialogButtonBox *buttonBox =
-        new QDialogButtonBox(QDialogButtonBox::Yes | QDialogButtonBox::No);
+    // Custom buttons
+    QDialogButtonBox *buttonBox = new QDialogButtonBox;
+    QPushButton *trashBtn = buttonBox->addButton("Move to Trash", QDialogButtonBox::AcceptRole);
+    QPushButton *permBtn = buttonBox->addButton("Delete Permanently", QDialogButtonBox::DestructiveRole);
+    QPushButton *cancelBtn = buttonBox->addButton("Cancel", QDialogButtonBox::RejectRole);
     layout->addWidget(buttonBox);
 
-    QObject::connect(buttonBox, &QDialogButtonBox::accepted, &dialog,
-                    &QDialog::accept);
-    QObject::connect(buttonBox, &QDialogButtonBox::rejected, &dialog,
-                   &QDialog::reject);
+    // Default to cancel if anything
+    DeleteAction action = CancelDelete;
 
-    if (dialog.exec() == QDialog::Accepted) {
-        // Delete files
-        // Deleting File Logic:
-        QStringList failedDeletions;
-        for (const auto& filePair : files) {
-            QString fullPath = filePair.second;
-            QFile file(fullPath);
-            if (!file.remove()) {
-            failedDeletions.append(fullPath);
+    connect(trashBtn, &QPushButton::clicked,this, [&action, &dialog]() {
+        action = MoveToTrash;
+        dialog.accept();
+    });
+    connect(permBtn, &QPushButton::clicked, [&action, &dialog]() {
+        QMessageBox::StandardButton reply = QMessageBox::question(
+            &dialog, "Confirm Deletion",
+            "Are you sure you want to delete these files permanently?",
+            QMessageBox::Yes | QMessageBox::No
+            );
+
+        if (reply == QMessageBox::Yes) {
+            action = DeletePermanently;
+            dialog.accept();
+        }
+    });
+    connect(cancelBtn, &QPushButton::clicked, [&action, &dialog]() {
+        action = CancelDelete;
+        dialog.reject();
+    });
+
+    // if the trash is not available disable the button
+    if(!getTrashAvailable()){
+        trashBtn->setEnabled(false);
+        trashBtn->setText("No Trash");
+        trashBtn->setToolTip("No trash available");
+    }
+
+    dialog.exec();
+
+    QStringList failedDeletions;
+    QString successMsg;
+    QString errorMsg;
+
+    switch (action) {
+    case MoveToTrash: // Move files to OS trash (if available)
+        for (const auto &filePair : files) {
+            const QString &fullPath = filePair.second;
+            if (!TrashManager::moveToTrash(fullPath)) {
+                failedDeletions.append(fullPath);
             }
         }
-
-        if (!failedDeletions.isEmpty()) {
-            QString errorMsg = "Failed to delete the following files:\n"
-                               + failedDeletions.join("\n");
-            QMessageBox::warning(this, "Deletion Failed", errorMsg);
-        } else {
-            QMessageBox::information(this, "Success", "Selected files deleted successfully.");
+        successMsg = "Selected files moved to trash sucessfully";
+        errorMsg = "Failed to move the following to trash:\n";
+        break;
+    case DeletePermanently:
+        for (const auto &filePair : files) {
+            const QString &fullPath = filePair.second;
+            QFile file(fullPath);
+            if (!file.remove()) {
+                failedDeletions.append(fullPath);
+            }
         }
-    } else {
-        // User Canceled
+        successMsg = "Selected files deleted successfully.";
+        errorMsg = "Failed to delete the following files:\n";
+        break;
+    case CancelDelete:
+    default:
+        return;
+    }
+
+    if (!failedDeletions.isEmpty()) {
+        errorMsg +=  failedDeletions.join("\n");
+        QMessageBox::warning(this, "Deletion Failed", errorMsg);
+    } else if (action != CancelDelete) {
+        QMessageBox::information(this, "Success", successMsg);
     }
 }
+
 
 void MainWindow::onHowUseBTN_clicked() {
     if (!tutorial) {

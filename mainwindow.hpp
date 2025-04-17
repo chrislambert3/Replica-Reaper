@@ -24,6 +24,7 @@
 #include "FileInfo.hpp"
 #include "settings.hpp"
 #include "tutorial.hpp"
+#include "trashmanager.hpp"
 
 using std::list;
 using std::pair;
@@ -36,6 +37,17 @@ QT_END_NAMESPACE
 
 struct AppSettings {
     bool backgroundCheck = false;
+    #ifdef TRASH_AVAILABLE // will only define on windows currently (see cmakelist for macro)
+    bool trashAvailable = true;
+    #else
+    bool trashAvailable = false;
+    #endif
+};
+
+enum DeleteAction {
+    MoveToTrash,
+    DeletePermanently,
+    CancelDelete
 };
 
 class MainWindow : public QMainWindow {
@@ -55,6 +67,7 @@ class MainWindow : public QMainWindow {
     bool getBackgroundState() { return settings.backgroundCheck;}
     void setCancelButtonState(bool state) { cancelButtonState = state; }
     bool getCancelButtonState() const { return cancelButtonState; }
+    bool getTrashAvailable() const {return settings.trashAvailable;}
     void closeEvent(QCloseEvent *event);
     qint64 PythonAutoTestHelper(QString InputPath);
     qint64 getDirectorySize(const QString &dirPath);
