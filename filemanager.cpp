@@ -52,7 +52,7 @@ QString FileManager::PromptDirectory(QWidget* parent) {
     return filePath;
 }
 
-/* HashFile(): Hashes a single file using sha256
+/* HashFile(): Hashes a single file using Blake2b_160
  *
  * input: file location (QString)
  * output: Hash of the specified file.
@@ -62,7 +62,7 @@ QByteArray FileManager::HashFile(QString fileName) {
     // Opens the file
     QFile file(fileName);
     // sets the hash generator
-    QCryptographicHash hash(QCryptographicHash::Sha256);
+    QCryptographicHash hash(QCryptographicHash::Blake2b_160);
 
     if (!file.open(QIODevice::ReadOnly)) {
         qWarning() << "Could not open file:" << fileName;
@@ -70,7 +70,7 @@ QByteArray FileManager::HashFile(QString fileName) {
     }
 
     if (!hash.addData(&file)) {
-        qWarning() << "Could not sha256 hash the file";
+        qWarning() << "Could not Blake2b_160 hash the file";
         return QByteArray("");
     }
 
