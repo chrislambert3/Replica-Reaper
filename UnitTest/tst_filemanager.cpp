@@ -201,7 +201,7 @@ void FileManagerTest::testInitAddFileToList() {
                   testManager.HashFile("TestFiles/testfile1.txt"));
 
     // add test file to list
-    testManager.addFileToTypeSizeMap(file);
+    testManager.addFileToTypeSizeMap(file, FileManager::Files);
 
     // verify file type has 1 entry
     QVERIFY(testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]
@@ -236,7 +236,7 @@ void FileManagerTest::testAddDupeToAddFileToList() {
   qDebug("testAddFileToList verifying duplicate goes to the same list");
 
   // add test file to list
-  testManager.addFileToTypeSizeMap(fileDupe);
+  testManager.addFileToTypeSizeMap(fileDupe, FileManager::Files);
 
   // verify type and size have 2 entries
   QVERIFY(testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]
@@ -264,7 +264,7 @@ void FileManagerTest::testAddNonDupeToaddFileToTypeSizeMap() {
         "testaddFileToTypeSizeMap verifying non-duplicate goes to different size list");
 
     // add different test file to list
-    testManager.addFileToTypeSizeMap(fileDiff);
+    testManager.addFileToTypeSizeMap(fileDiff, FileManager::Files);
 
     // test files at different location
     QVERIFY(testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]

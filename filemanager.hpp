@@ -28,22 +28,25 @@ class FileManager : public QObject {
     Q_OBJECT
 
  public:
+    typedef enum FilesOrDownloads{ Files = 0, Downloads = 1 } FileOrDownloads;
     explicit FileManager(QObject* parent = nullptr);
     QString PromptDirectory(QWidget* widget);
     QByteArray HashFile(QString fileName);
     QStringList ListFiles(const QString& directoryPath);
     void ShowNotification(const QString& title, const QString& message);
-    void addFileToTypeSizeMap(FileInfo& file);
-    void CheckAndAddDupes(std::list<FileInfo>& list);
+    void addFileToTypeSizeMap(FileInfo& file, FileOrDownloads ChooseWhich);
+    void CheckAndAddDupes(std::list<FileInfo>& list, FileOrDownloads ChooseWhich);
+    bool isDupe(FileInfo& file, FileOrDownloads ChooseWhich);
     // allows access to show and hide the UI
-    void setMainWindow(QMainWindow* ui) { this->ui = ui; }
-    void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
+    // void setMainWindow(QMainWindow* ui) { this->ui = ui; }
+    // void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
     void UpdateHashes(std::list<FileInfo>& list);
     void ClearData() {
         AllFilesByTypeSize.clear();
         Dupes.clear();
     }
     ~FileManager();
+
 
     friend std::ostream& operator<<(std::ostream& out, const FileManager& f);
 
@@ -54,11 +57,15 @@ class FileManager : public QObject {
         AllFilesByTypeSize;
     unordered_map<QByteArray, std::list<FileInfo>> Dupes;
 
+    unordered_map<QString, unordered_map<uintmax_t, std::list<FileInfo>>>
+        AllDownloadsByTypeSize;
+    unordered_map<QByteArray, std::list<FileInfo>> DownloadDupes;
+
  private:
-    QSystemTrayIcon* trayIcon;
-    QAction* quitAction;
-    QMenu* trayMenu;
-    QMainWindow* ui;
+    // QSystemTrayIcon* trayIcon;
+    // QAction* quitAction;
+    // QMenu* trayMenu;
+    // QMainWindow* ui;
 };
 
 #endif /* FILEMANAGER_HPP */

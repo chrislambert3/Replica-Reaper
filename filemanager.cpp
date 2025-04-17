@@ -2,27 +2,7 @@
 #include "filemanager.hpp"
 #include "mainwindow.hpp"
 
-FileManager::FileManager(QObject* parent)
-    : QObject(parent), trayIcon(new QSystemTrayIcon()), ui(nullptr) {
-    // can also set our custon icon like this:
-
-    // Creates a tray icon when Program is hidden
-    // Related to background process feature
-    // trayIcon->setIcon(QIcon(":/icon.png")); // Set an icon (optional, ensure
-    this->trayIcon->setIcon(QIcon(":/assets/assets/rr-logo.png"));
-    quitAction = new QAction("Exit Replica Reaper", this);
-    // map the action to close the full application, (qApp is a universal pointer
-    // to the running application)
-    connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
-    // add a trayicon menu with the quit button/action
-    QMenu* trayMenu = new QMenu();
-    trayMenu->addAction(quitAction);
-    trayIcon->setContextMenu(trayMenu);
-    // map the user clicking the tray icon to a function reopening the UI
-    connect(trayIcon, &QSystemTrayIcon::activated, this,
-          &FileManager::onTrayIconActivated);
-    this->trayIcon->show();
-}
+FileManager::FileManager(QObject* parent) : QObject(parent) {}
 FileManager::~FileManager() {}
 /* PromptDirectory(): Prompts a request to the user
  * to select a directory to be reaped. Is called
@@ -103,6 +83,24 @@ QStringList FileManager::ListFiles(const QString& directoryPath) {
     // qDebug() << "Files in directory (recursive):" << fullPaths;
     return fullPaths;
 }
+/* isDupe(): checks if a file is a duplicate
+ *
+ * input: File to check and which map to check
+ * output: True if file is a dupe
+ *         false if file is NOT a dupe
+ */
+bool FileManager::isDupe(FileInfo& file, FileOrDownloads ChooseWhich){
+    QByteArray FileHash = HashFile(QString::fromStdString(file.getFilePath().string()));
+    if(ChooseWhich == Files) {
+        auto it = Dupes.find(FileHash);
+        return (it != Dupes.end()) ? true : false;
+    }else if(ChooseWhich == Downloads) {
+        auto it = DownloadDupes.find(FileHash);
+        return (it != DownloadDupes.end()) ? true : false;
+    }
+    qDebug() << "error in isDupe()";
+    return false;
+}
 
 /* AddFileToTypeSizeMap(): Adds a single file to the data member
  * "AllFilesByTypeSize" located in the File manager class. Correctly
@@ -112,21 +110,35 @@ QStringList FileManager::ListFiles(const QString& directoryPath) {
  * output: an updated AllFilesByTypeSize map containing
  * that input file.
  */
-void FileManager::addFileToTypeSizeMap(FileInfo& file) {
+void FileManager::addFileToTypeSizeMap(FileInfo& file, FileOrDownloads ChooseWhich) {
     // key == input files type
     // value == size map for that type
-    auto& sizeMap =
-        AllFilesByTypeSize[file.getFileType()];
-    // key == input file size
-    // value = list for that type and size
-    auto& fileList =
-        sizeMap[file.getFileSize()];
+    if(ChooseWhich == Files) {
+            // key == input files type
+            // value == size map for that type
+        auto& sizeMap =
+            AllFilesByTypeSize[file.getFileType()];
+        // key == input file size
+        // value = list for that type and size
+        auto& fileList =
+            sizeMap[file.getFileSize()];
 
-    fileList.push_back(file);
+        fileList.push_back(file);
 
-    // if list has > 1 size, check dupes and hash files
-    // for later duplicate detection.
-    if (fileList.size() > 1) CheckAndAddDupes(fileList);
+        // if list has > 1 size, check dupes and hash files
+        // for later duplicate detection.
+        if (fileList.size() > 1) CheckAndAddDupes(fileList, Files);
+    } else if(ChooseWhich == Downloads){
+
+        auto& sizeMap =
+            AllDownloadsByTypeSize[file.getFileType()];
+        auto& fileList =
+            sizeMap[file.getFileSize()];
+
+        fileList.push_back(file);
+
+        if (fileList.size() > 1) CheckAndAddDupes(fileList, Downloads);
+    }
 }
 /* CheckAndAddDupes(): Checks a list of FileInfo Objects
  * for duplicates and adds them to the DupesMap if they
@@ -135,7 +147,7 @@ void FileManager::addFileToTypeSizeMap(FileInfo& file) {
  * input: List of FileInfo objects, with a sepcific Type and Size
  * output: an updated DupesMap.
  */
-void FileManager::CheckAndAddDupes(std::list<FileInfo>& list) {
+void FileManager::CheckAndAddDupes(std::list<FileInfo>& list, FileOrDownloads ChooseWhich) {
     // File Hashes will be needed for duplicate detection
     UpdateHashes(list);
 
@@ -164,8 +176,11 @@ void FileManager::CheckAndAddDupes(std::list<FileInfo>& list) {
             if (earliest != dList.end()) {
                 dList.splice(dList.begin(), dList, earliest);
             }
-
-            Dupes[hash] = dList;
+            if(ChooseWhich == Files){
+                Dupes[hash] = dList;
+            }else if(ChooseWhich == Downloads){
+                DownloadDupes[hash] = dList;
+            }
         }
     }
 }
@@ -203,31 +218,31 @@ std::ostream& operator<<(std::ostream& out, const FileManager& f) {
   return out;
 }
 
-void FileManager::ShowNotification(const QString& title,
-                                    const QString& message) {
-    if (!QSystemTrayIcon::isSystemTrayAvailable()) {
-        qWarning("System tray is not available.");
-        return;
-    }
+// void FileManager::ShowNotification(const QString& title,
+//                                     const QString& message) {
+//     if (!QSystemTrayIcon::isSystemTrayAvailable()) {
+//         qWarning("System tray is not available.");
+//         return;
+//     }
 
-    // Display the notification | 10000 ms = 10 seconds till timeout
-    this->trayIcon->showMessage(title, message, QSystemTrayIcon::Information,
-                                10000);
-}
+//     // Display the notification | 10000 ms = 10 seconds till timeout
+//     this->trayIcon->showMessage(title, message, QSystemTrayIcon::Information,
+//                                 10000);
+// }
 
-// this function activates when the system tray icon is clicked
-void FileManager::onTrayIconActivated(
-    QSystemTrayIcon::ActivationReason reason) {
-    // if the icon is clicked and the ui exists
-    if (reason == QSystemTrayIcon::Trigger && ui) {
-        // If the main window is hidden or minimized, show it
-        if (ui->isHidden()) {
-            ui->show();            // Show the window if hidden
-            ui->raise();           // Bring the window to the front
-            ui->activateWindow();  // Give the window focus
-        } else {
-            ui->raise();
-            ui->activateWindow();
-        }
-    }
-}
+// // this function activates when the system tray icon is clicked
+// void FileManager::onTrayIconActivated(
+//     QSystemTrayIcon::ActivationReason reason) {
+//     // if the icon is clicked and the ui exists
+//     if (reason == QSystemTrayIcon::Trigger && ui) {
+//         // If the main window is hidden or minimized, show it
+//         if (ui->isHidden()) {
+//             ui->show();            // Show the window if hidden
+//             ui->raise();           // Bring the window to the front
+//             ui->activateWindow();  // Give the window focus
+//         } else {
+//             ui->raise();
+//             ui->activateWindow();
+//         }
+//     }
+// }
