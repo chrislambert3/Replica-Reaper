@@ -89,12 +89,12 @@ QStringList FileManager::ListFiles(const QString& directoryPath) {
  * output: True if file is a dupe
  *         false if file is NOT a dupe
  */
-bool FileManager::isDupe(FileInfo& file, FileOrDownloads ChooseWhich){
+bool FileManager::isDupe(FileInfo& file, FileOrDownloads ChooseWhich) {
     QByteArray FileHash = HashFile(QString::fromStdString(file.getFilePath().string()));
-    if(ChooseWhich == Files) {
+    if (ChooseWhich == Files) {
         auto it = Dupes.find(FileHash);
         return (it != Dupes.end()) ? true : false;
-    }else if(ChooseWhich == Downloads) {
+    } else if (ChooseWhich == Downloads) {
         auto it = DownloadDupes.find(FileHash);
         return (it != DownloadDupes.end()) ? true : false;
     }
@@ -113,7 +113,7 @@ bool FileManager::isDupe(FileInfo& file, FileOrDownloads ChooseWhich){
 void FileManager::addFileToTypeSizeMap(FileInfo& file, FileOrDownloads ChooseWhich) {
     // key == input files type
     // value == size map for that type
-    if(ChooseWhich == Files) {
+    if (ChooseWhich == Files) {
             // key == input files type
             // value == size map for that type
         auto& sizeMap =
@@ -128,8 +128,7 @@ void FileManager::addFileToTypeSizeMap(FileInfo& file, FileOrDownloads ChooseWhi
         // if list has > 1 size, check dupes and hash files
         // for later duplicate detection.
         if (fileList.size() > 1) CheckAndAddDupes(fileList, Files);
-    } else if(ChooseWhich == Downloads){
-
+    } else if (ChooseWhich == Downloads) {
         auto& sizeMap =
             AllDownloadsByTypeSize[file.getFileType()];
         auto& fileList =
@@ -176,9 +175,9 @@ void FileManager::CheckAndAddDupes(std::list<FileInfo>& list, FileOrDownloads Ch
             if (earliest != dList.end()) {
                 dList.splice(dList.begin(), dList, earliest);
             }
-            if(ChooseWhich == Files){
+            if (ChooseWhich == Files) {
                 Dupes[hash] = dList;
-            }else if(ChooseWhich == Downloads){
+            } else if (ChooseWhich == Downloads) {
                 DownloadDupes[hash] = dList;
             }
         }
@@ -218,31 +217,3 @@ std::ostream& operator<<(std::ostream& out, const FileManager& f) {
   return out;
 }
 
-// void FileManager::ShowNotification(const QString& title,
-//                                     const QString& message) {
-//     if (!QSystemTrayIcon::isSystemTrayAvailable()) {
-//         qWarning("System tray is not available.");
-//         return;
-//     }
-
-//     // Display the notification | 10000 ms = 10 seconds till timeout
-//     this->trayIcon->showMessage(title, message, QSystemTrayIcon::Information,
-//                                 10000);
-// }
-
-// // this function activates when the system tray icon is clicked
-// void FileManager::onTrayIconActivated(
-//     QSystemTrayIcon::ActivationReason reason) {
-//     // if the icon is clicked and the ui exists
-//     if (reason == QSystemTrayIcon::Trigger && ui) {
-//         // If the main window is hidden or minimized, show it
-//         if (ui->isHidden()) {
-//             ui->show();            // Show the window if hidden
-//             ui->raise();           // Bring the window to the front
-//             ui->activateWindow();  // Give the window focus
-//         } else {
-//             ui->raise();
-//             ui->activateWindow();
-//         }
-//     }
-// }

@@ -28,7 +28,7 @@ class FileManager : public QObject {
     Q_OBJECT
 
  public:
-    typedef enum FilesOrDownloads{ Files = 0, Downloads = 1 } FileOrDownloads;
+    typedef enum FilesOrDownloads { Files = 0, Downloads = 1 } FileOrDownloads;
     explicit FileManager(QObject* parent = nullptr);
     QString PromptDirectory(QWidget* widget);
     QByteArray HashFile(QString fileName);

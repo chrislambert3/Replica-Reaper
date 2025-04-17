@@ -3,7 +3,8 @@
 #include "./ui_mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::MainWindow), manager(new FileManager()), trayIcon(new QSystemTrayIcon()), Qui(nullptr) {
+    : QMainWindow(parent), ui(new Ui::MainWindow),
+        manager(new FileManager()), trayIcon(new QSystemTrayIcon()), Qui(nullptr) {
     ui->setupUi(this);
     // hide the cancel button initially
     ui->CancelBTN->setVisible(false);
@@ -52,7 +53,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->HowUseBTN, &QPushButton::clicked, this,
             &MainWindow::onHowUseBTN_clicked);
 
-    //Tray icon shit start
+    // Tray icon shit start
 
     // can also set our custon icon like this:
 
@@ -73,7 +74,7 @@ MainWindow::MainWindow(QWidget *parent)
             &MainWindow::onTrayIconActivated);
     this->trayIcon->show();
 
-    //tray icon shit end
+    // tray icon shit end
 
 
     // Download check loop start
@@ -109,13 +110,12 @@ MainWindow::MainWindow(QWidget *parent)
                               fs::file_size(fPath));
 
                 manager->addFileToTypeSizeMap(file, FileManager::Downloads);
-                if(manager->isDupe(file, FileManager::Downloads)){
+                if (manager->isDupe(file, FileManager::Downloads)) {
                     ShowNotification("Duplicate Detected, Open ReplicaReaper to delete: "
                                               , file.getFileName());
                 }
             }
         }
-
     });
 
     // Download check loop end
@@ -145,7 +145,6 @@ void MainWindow::closeEvent(QCloseEvent *event) {
                 FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
                               fs::file_size(fPath));
                 // Push and sort FileInfo class into FileManager class
-                //********************88
                 manager->addFileToTypeSizeMap(file, FileManager::Downloads);
                 qDebug() << "analyzing downloads";
             }
@@ -693,7 +692,7 @@ void MainWindow::onTrayIconActivated(
             Qui->show();            // Show the window if hidden
             Qui->raise();           // Bring the window to the front
             Qui->activateWindow();  // Give the window focus
-            if(!manager->DownloadDupes.empty()){
+            if (!manager->DownloadDupes.empty()) {
                 ShowDownloadDupesInUI(m);
             }
         } else {
