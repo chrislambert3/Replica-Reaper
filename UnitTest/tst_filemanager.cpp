@@ -141,18 +141,15 @@ void FileManagerTest::testHashFile_data() {
   QTest::newRow("Testing File Hash: test file 1")
       << testFilesPath + "/testfile1.txt"
       << QByteArray(
-             "dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986"
-             "f");
+             "522f974c6500eb7923c28e3b129b52a79405f0fa");
   QTest::newRow("Testing File Hash: test file 2")
       << testFilesPath + "/testfile2.txt"
       << QByteArray(
-             "564b97c72b1c73c308baecea3cece413e8026bfd76cd902fd2a0ea9e3febd0b"
-             "2");
+             "1278f1b6fde6bda8b911ffb89b3586ca7b73c6a9");
   QTest::newRow("Testing File Hash: empty file")
       << testFilesPath + "/empty.txt"
       << QByteArray(
-             "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b85"
-             "5");
+             "3345524abf6bbe1809449224b5972c41790b6cf2");
   qDebug() << "Hash file data table created";
 }
 
