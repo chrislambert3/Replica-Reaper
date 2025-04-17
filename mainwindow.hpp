@@ -37,7 +37,7 @@ QT_END_NAMESPACE
 
 struct AppSettings {
     bool backgroundCheck = false;
-    #ifdef TRASH_AVAILABLE // will only define on windows currently (see cmakelist for macro)
+    #ifdef TRASH_AVAILABLE  // will only define on windows currently (see cmakelist for macro)
     bool trashAvailable = true;
     #else
     bool trashAvailable = false;

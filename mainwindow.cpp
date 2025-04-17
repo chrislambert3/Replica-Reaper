@@ -443,7 +443,6 @@ void MainWindow::onSettBTN_clicked() {
 }
 void MainWindow::showDeleteConfirmation(
         const list<pair<QString, QString>> &files) {
-
     QDialog dialog(this);
     dialog.setWindowTitle("Confirm Deletion");
     dialog.setModal(true);
@@ -491,14 +490,15 @@ void MainWindow::showDeleteConfirmation(
     // Custom buttons
     QDialogButtonBox *buttonBox = new QDialogButtonBox;
     QPushButton *trashBtn = buttonBox->addButton("Move to Trash", QDialogButtonBox::AcceptRole);
-    QPushButton *permBtn = buttonBox->addButton("Delete Permanently", QDialogButtonBox::DestructiveRole);
+    QPushButton *permBtn = buttonBox->addButton("Delete Permanently",
+                                        QDialogButtonBox::DestructiveRole);
     QPushButton *cancelBtn = buttonBox->addButton("Cancel", QDialogButtonBox::RejectRole);
     layout->addWidget(buttonBox);
 
     // Default to cancel if anything
     DeleteAction action = CancelDelete;
 
-    connect(trashBtn, &QPushButton::clicked,this, [&action, &dialog]() {
+    connect(trashBtn, &QPushButton::clicked, this, [&action, &dialog]() {
         action = MoveToTrash;
         dialog.accept();
     });
@@ -506,8 +506,7 @@ void MainWindow::showDeleteConfirmation(
         QMessageBox::StandardButton reply = QMessageBox::question(
             &dialog, "Confirm Deletion",
             "Are you sure you want to delete these files permanently?",
-            QMessageBox::Yes | QMessageBox::No
-            );
+            QMessageBox::Yes | QMessageBox::No);
 
         if (reply == QMessageBox::Yes) {
             action = DeletePermanently;
@@ -520,7 +519,7 @@ void MainWindow::showDeleteConfirmation(
     });
 
     // if the trash is not available disable the button
-    if(!getTrashAvailable()){
+    if (!getTrashAvailable()) {
         trashBtn->setEnabled(false);
         trashBtn->setText("No Trash");
         trashBtn->setToolTip("No trash available");
@@ -533,7 +532,7 @@ void MainWindow::showDeleteConfirmation(
     QString errorMsg;
 
     switch (action) {
-    case MoveToTrash: // Move files to OS trash (if available)
+    case MoveToTrash:  // Move files to OS trash (if available)
         for (const auto &filePair : files) {
             const QString &fullPath = filePair.second;
             if (!TrashManager::moveToTrash(fullPath)) {
