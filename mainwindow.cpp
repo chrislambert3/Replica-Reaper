@@ -3,7 +3,8 @@
 #include "./ui_mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::MainWindow), manager(new FileManager()) {
+    : QMainWindow(parent), ui(new Ui::MainWindow),
+        manager(new FileManager()), trayIcon(new QSystemTrayIcon()), Qui(nullptr) {
     ui->setupUi(this);
     // hide the cancel button initially
     ui->CancelBTN->setVisible(false);
@@ -19,7 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
     this->setWindowTitle("Replica Reaper");
     // :/assets/assets... will resolve universally
     this->setWindowIcon(QIcon(":/assets/assets/rr-logo.png"));
-    manager->setMainWindow(this);
+    setQMainWindow(this);
 
     // Tree Widget config:
     ui->treeWidget->setColumnCount(3);  // Single column for file names
@@ -52,6 +53,29 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->HowUseBTN, &QPushButton::clicked, this,
             &MainWindow::onHowUseBTN_clicked);
 
+    // Tray icon shit start
+
+    // can also set our custon icon like this:
+
+    // Creates a tray icon when Program is hidden
+    // Related to background process feature
+    // trayIcon->setIcon(QIcon(":/icon.png")); // Set an icon (optional, ensure
+    this->trayIcon->setIcon(QIcon(":/assets/assets/rr-logo.png"));
+    quitAction = new QAction("Exit Replica Reaper", this);
+    // map the action to close the full application, (qApp is a universal pointer
+    // to the running application)
+    connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
+    // add a trayicon menu with the quit button/action
+    QMenu* trayMenu = new QMenu();
+    trayMenu->addAction(quitAction);
+    trayIcon->setContextMenu(trayMenu);
+    // map the user clicking the tray icon to a function reopening the UI
+    connect(trayIcon, &QSystemTrayIcon::activated, this,
+            &MainWindow::onTrayIconActivated);
+    this->trayIcon->show();
+
+    // tray icon shit end
+
 
     // Download check loop start
 
@@ -75,7 +99,23 @@ MainWindow::MainWindow(QWidget *parent)
 
         QFileInfoList fileList = dir.entryInfoList();
 
-        qDebug() << "NEWFILE: " << fileList.last().absoluteFilePath();
+        if (!fileList.isEmpty()) {
+            QFileInfo lastFile = fileList.last();
+            if (lastFile.suffix() != "tmp") {
+                qDebug() << "NEWFILE:" << lastFile.absoluteFilePath();
+                // Do detections here
+
+                fs::path fPath = lastFile.absoluteFilePath().toStdString();
+                FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
+                              fs::file_size(fPath));
+
+                manager->addFileToTypeSizeMap(file, FileManager::Downloads);
+                if (manager->isDupe(file, FileManager::Downloads)) {
+                    ShowNotification("Duplicate Detected, Open ReplicaReaper to delete: "
+                                              , file.getFileName());
+                }
+            }
+        }
     });
 
     // Download check loop end
@@ -96,6 +136,20 @@ void MainWindow::closeEvent(QCloseEvent *event) {
         // Updates to DownLoad Directory
         this->hide();
         event->ignore();
+        // Analyze downloads for background duplicate detection
+        if (manager->AllDownloadsByTypeSize.empty()) {
+            QStringList filePaths = manager->ListFiles(
+                QStandardPaths::writableLocation(QStandardPaths::DownloadLocation));
+            for (int i = 0; i < filePaths.size(); ++i) {
+                fs::path fPath = filePaths[i].toStdString();
+                FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
+                              fs::file_size(fPath));
+                // Push and sort FileInfo class into FileManager class
+                manager->addFileToTypeSizeMap(file, FileManager::Downloads);
+                qDebug() << "analyzing downloads";
+            }
+            qDebug() << "analyzing downloads done";
+        }
     } else {
         qApp->quit();  // Close the full application
         event->accept();
@@ -155,7 +209,7 @@ void MainWindow::onReaperButtonClicked() {
             ui->CancelBTN->setVisible(false);  // show cancel button
             ui->RunReaperBTN->setEnabled(true);  // re-enable reaper button
             ui->progressBar->setValue(0);  // reset the progress bar to 0
-            manager->ShowNotification("Reaping Canceled", "Scanning has cancelled sucessfully");
+            ShowNotification("Reaping Canceled", "Scanning has cancelled sucessfully");
             return;
         }
         // setup for FileInfo class
@@ -163,7 +217,7 @@ void MainWindow::onReaperButtonClicked() {
         FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
                     fs::file_size(fPath));
         // Push and sort FileInfo class into FileManager class
-        manager->addFileToTypeSizeMap(file);  // passes in fileinfo
+        manager->addFileToTypeSizeMap(file, FileManager::Files);  // passes in fileinfo
         // std::cout << *manager;  // DEBUG *************
 
         if (i % 50 == 0 || i == filePaths.size() - 1) {  // Update every 50 files
@@ -178,7 +232,7 @@ void MainWindow::onReaperButtonClicked() {
     auto elapsedTime = timer.elapsed();
     QString message =
         "Took " + QString::number(elapsedTime / 1000.0, 'f') + " seconds";
-    manager->ShowNotification("Hashing Complete", message);
+    // ShowNotification("Hashing Complete", message);
     ShowDupesInUI(*manager);
     // re-enable the button
     ui->CancelBTN->setVisible(false);
@@ -198,6 +252,85 @@ void MainWindow::ShowDupesInUI(const FileManager &f) {
     ui->treeWidget->blockSignals(true);
     QString out;
     for (auto it = f.Dupes.begin(); it != f.Dupes.end(); ++it) {
+        // Make a parent item for the list tree widget
+        QTreeWidgetItem *parentHashItem = new QTreeWidgetItem(ui->treeWidget);
+        parentHashItem->setText(0, it->second.front().getFileName());
+        parentHashItem->setText(
+            1, QString::fromStdString(
+                it->second.front()
+                    .getFilePath()
+                    .string()));  // Next column value to go under FilePath
+        parentHashItem->setText(2, it->second.front().getDate().toString());
+        parentHashItem->setToolTip(
+            1, QString::fromStdString(
+                it->second.front()
+                    .getFilePath()
+                    .string()));
+        parentHashItem->setCheckState(0, Qt::Unchecked);  // Default unchecked
+        // add the parent item to tree
+        ui->treeWidget->addTopLevelItem(parentHashItem);
+
+        for (auto &a : it->second) {
+            out = QString::fromStdString(a.getFilePath().string());
+            // Logic for adding to list Tree:
+            // make a a child for the parent hash item
+            QTreeWidgetItem *childItem = new QTreeWidgetItem(parentHashItem);
+            childItem->setText(0, a.getFileName());  // set the filename
+            childItem->setText(1, out);              // sets the filepath column
+            childItem->setToolTip(1, out);
+            childItem->setText(2, a.getDate().toString());
+            childItem->setCheckState(0, Qt::Unchecked);
+        }
+    }
+
+    QHeaderView* header = ui->treeWidget->header();
+    // Enable interactive resizing
+    header->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    header->setSectionResizeMode(1, QHeaderView::Stretch);
+    header->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+
+    // This allows the second column to be resized
+    // in case the user wants to stretch out the filepath column
+    auto colWidth = ui->treeWidget->columnWidth(0);
+    header->setSectionResizeMode(0, QHeaderView::Interactive);
+    ui->treeWidget->setColumnWidth(0, colWidth);
+
+    // Clamps the widget to not stretch beyond the viewport
+    connect(ui->treeWidget->header(), &QHeaderView::sectionResized,
+            this, [=](int logicalIndex, int oldSize, int newSize) {
+                if (logicalIndex == 0 && newSize > colWidth) {
+                    ui->treeWidget->setColumnWidth(0, colWidth);
+                }
+            });
+    // helper function to resize widget colums when expanded or collapsed
+    auto adjustColumnWidth = [=]() {
+        QHeaderView* header = ui->treeWidget->header();
+        // Temporarily resize to fit all visible content
+        header->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+        // Lock new width
+        int updatedColWidth = ui->treeWidget->columnWidth(0);
+        header->setSectionResizeMode(0, QHeaderView::Interactive);
+        ui->treeWidget->setColumnWidth(0, updatedColWidth);
+    };
+    // When a parent is expanded
+    connect(ui->treeWidget, &QTreeWidget::itemExpanded,
+            this, [=](QTreeWidgetItem *) {
+                adjustColumnWidth();
+            });
+    // When a parent is collapsed
+    connect(ui->treeWidget, &QTreeWidget::itemCollapsed,
+            this, [=](QTreeWidgetItem *) {
+                adjustColumnWidth();
+            });
+    // Prevent column resizing beyond viewport width
+    header->setStretchLastSection(false);
+    ui->treeWidget->blockSignals(false);
+}
+void MainWindow::ShowDownloadDupesInUI(const FileManager &f) {
+    ui->treeWidget->blockSignals(true);
+    ui->treeWidget->clear();
+    QString out;
+    for (auto it = f.DownloadDupes.begin(); it != f.DownloadDupes.end(); ++it) {
         // Make a parent item for the list tree widget
         QTreeWidgetItem *parentHashItem = new QTreeWidgetItem(ui->treeWidget);
         parentHashItem->setText(0, it->second.front().getFileName());
@@ -411,7 +544,7 @@ qint64 MainWindow::PythonAutoTestHelper(QString InputPath) {
         fs::path fPath = filePaths[i].toStdString();
         FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
                   fs::file_size(fPath));
-        manager->addFileToTypeSizeMap(file);
+        manager->addFileToTypeSizeMap(file, FileManager::Files);
     }
 
     return timer.elapsed();
@@ -532,4 +665,39 @@ void MainWindow::onHowUseBTN_clicked() {
 void MainWindow::onCancelBTN_clicked() {
     // flag the cancel boolean
     this->setCancelButtonState(true);
+}
+
+///////
+
+void MainWindow::ShowNotification(const QString& title,
+                                   const QString& message) {
+    if (!QSystemTrayIcon::isSystemTrayAvailable()) {
+        qWarning("System tray is not available.");
+        return;
+    }
+
+    // Display the notification | 10000 ms = 10 seconds till timeout
+    this->trayIcon->showMessage(title, message, QSystemTrayIcon::Information,
+                                10000);
+}
+
+// this function activates when the system tray icon is clicked
+void MainWindow::onTrayIconActivated(
+    QSystemTrayIcon::ActivationReason reason) {
+    // if the icon is clicked and the ui exists
+    if (reason == QSystemTrayIcon::Trigger && Qui) {
+        const FileManager& m = *manager;
+        // If the main window is hidden or minimized, show it
+        if (Qui->isHidden()) {
+            Qui->show();            // Show the window if hidden
+            Qui->raise();           // Bring the window to the front
+            Qui->activateWindow();  // Give the window focus
+            if (!manager->DownloadDupes.empty()) {
+                ShowDownloadDupesInUI(m);
+            }
+        } else {
+            Qui->raise();
+            Qui->activateWindow();
+        }
+    }
 }

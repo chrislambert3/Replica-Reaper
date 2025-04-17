@@ -45,6 +45,7 @@ class MainWindow : public QMainWindow {
     explicit MainWindow(QWidget *parent = nullptr);
     void onReaperButtonClicked();
     void ShowDupesInUI(const FileManager &f);
+    void ShowDownloadDupesInUI(const FileManager &f);
     void showDeleteConfirmation(const list<pair<QString, QString>>& files);
     void onTreeItemChanged(QTreeWidgetItem *item);
     void onDelSelBTN_clicked();
@@ -53,8 +54,11 @@ class MainWindow : public QMainWindow {
     list<pair<QString, QString>> getCheckedItems();
     void setBackgroundState(bool state) { settings.backgroundCheck = state;}
     bool getBackgroundState() { return settings.backgroundCheck;}
+    void setQMainWindow(QMainWindow* Qui) { this->Qui = Qui; }
     void setCancelButtonState(bool state) { cancelButtonState = state; }
     bool getCancelButtonState() const { return cancelButtonState; }
+    void ShowNotification(const QString& title, const QString& message);
+    void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
     void closeEvent(QCloseEvent *event);
     qint64 PythonAutoTestHelper(QString InputPath);
     qint64 getDirectorySize(const QString &dirPath);
@@ -69,6 +73,10 @@ class MainWindow : public QMainWindow {
     FileManager *manager;
     Tutorial *tutorial = nullptr;
     AppSettings settings;
+    QSystemTrayIcon* trayIcon;
+    QAction* quitAction;
+    QMenu* trayMenu;
+    QMainWindow* Qui;
     bool cancelButtonState = false;
 };
 #endif /* MAINWINDOW_HPP */
