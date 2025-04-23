@@ -104,3 +104,19 @@ jobs:
         with:
           name: RR-Windows-Installer
           path: RR-win64-Installer.exe
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@v1
+        if: github.ref == 'refs/heads/main'
+        id: tagger
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main'
+        with:
+          tag_name: "${{steps.tagger.outputs.new_tag}}"
+          files: |
+            RR-win64-Installer.exe
+            RR-Executable-UnitTests.zip
+          generate_release_notes: true
