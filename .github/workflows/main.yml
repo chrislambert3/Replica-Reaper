@@ -105,12 +105,11 @@ jobs:
           name: RR-Windows-Installer
           path: RR-win64-Installer.exe
       - name: Bump version and push tag
-        uses: anothrNick/github-tag-action@v1
+        uses: mathieudutour/github-tag-action@v6.2
         if: github.ref == 'refs/heads/main'
         id: tagger
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          WITH_V: true
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main'
