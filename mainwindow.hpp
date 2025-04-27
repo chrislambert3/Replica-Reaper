@@ -44,8 +44,7 @@ class MainWindow : public QMainWindow {
  public:
     explicit MainWindow(QWidget *parent = nullptr);
     void onReaperButtonClicked();
-    void ShowDupesInUI(const FileManager &f);
-    void ShowDownloadDupesInUI(const FileManager &f);
+    void ShowDupesInUI(const FileManager &f, FileManager::FileOrDownloads choice);
     void showDeleteConfirmation(const list<pair<QString, QString>>& files);
     void onTreeItemChanged(QTreeWidgetItem *item);
     void onDelSelBTN_clicked();

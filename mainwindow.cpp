@@ -72,6 +72,12 @@ MainWindow::MainWindow(QWidget *parent)
     // map the user clicking the tray icon to a function reopening the UI
     connect(trayIcon, &QSystemTrayIcon::activated, this,
             &MainWindow::onTrayIconActivated);
+    // map the user clicking the notification to opening the UI
+    connect(trayIcon, &QSystemTrayIcon::messageClicked, this, [=](){
+        Qui->show();
+        Qui->raise();
+        Qui->activateWindow();
+    });
     this->trayIcon->show();
 
     // tray icon shit end
@@ -233,7 +239,7 @@ void MainWindow::onReaperButtonClicked() {
     QString message =
         "Took " + QString::number(elapsedTime / 1000.0, 'f') + " seconds";
     // ShowNotification("Hashing Complete", message);
-    ShowDupesInUI(*manager);
+    ShowDupesInUI(*manager, FileManager::Files);
     // re-enable the button
     ui->CancelBTN->setVisible(false);
     ui->RunReaperBTN->setEnabled(true);
@@ -248,10 +254,13 @@ void MainWindow::onReaperButtonClicked() {
  * input: The filemanager holding all duplicates
  * output: UI display with a list of duplcates
  */
-void MainWindow::ShowDupesInUI(const FileManager &f) {
+void MainWindow::ShowDupesInUI(const FileManager &f, FileManager::FileOrDownloads choice) {
     ui->treeWidget->blockSignals(true);
+    // determine which map to iterate over
+    const auto& DupesMap = (choice == FileManager::Files) ? f.Dupes : f.DownloadDupes;
+
     QString out;
-    for (auto it = f.Dupes.begin(); it != f.Dupes.end(); ++it) {
+    for (auto it = DupesMap.begin(); it != DupesMap.end(); ++it) {
         // Make a parent item for the list tree widget
         QTreeWidgetItem *parentHashItem = new QTreeWidgetItem(ui->treeWidget);
         parentHashItem->setText(0, it->second.front().getFileName());
@@ -326,85 +335,7 @@ void MainWindow::ShowDupesInUI(const FileManager &f) {
     header->setStretchLastSection(false);
     ui->treeWidget->blockSignals(false);
 }
-void MainWindow::ShowDownloadDupesInUI(const FileManager &f) {
-    ui->treeWidget->blockSignals(true);
-    ui->treeWidget->clear();
-    QString out;
-    for (auto it = f.DownloadDupes.begin(); it != f.DownloadDupes.end(); ++it) {
-        // Make a parent item for the list tree widget
-        QTreeWidgetItem *parentHashItem = new QTreeWidgetItem(ui->treeWidget);
-        parentHashItem->setText(0, it->second.front().getFileName());
-        parentHashItem->setText(
-            1, QString::fromStdString(
-                it->second.front()
-                    .getFilePath()
-                    .string()));  // Next column value to go under FilePath
-        parentHashItem->setText(2, it->second.front().getDate().toString());
-        parentHashItem->setToolTip(
-            1, QString::fromStdString(
-                it->second.front()
-                    .getFilePath()
-                    .string()));
-        parentHashItem->setCheckState(0, Qt::Unchecked);  // Default unchecked
-        // add the parent item to tree
-        ui->treeWidget->addTopLevelItem(parentHashItem);
 
-        for (auto &a : it->second) {
-            out = QString::fromStdString(a.getFilePath().string());
-            // Logic for adding to list Tree:
-            // make a a child for the parent hash item
-            QTreeWidgetItem *childItem = new QTreeWidgetItem(parentHashItem);
-            childItem->setText(0, a.getFileName());  // set the filename
-            childItem->setText(1, out);              // sets the filepath column
-            childItem->setToolTip(1, out);
-            childItem->setText(2, a.getDate().toString());
-            childItem->setCheckState(0, Qt::Unchecked);
-        }
-    }
-
-    QHeaderView* header = ui->treeWidget->header();
-    // Enable interactive resizing
-    header->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-    header->setSectionResizeMode(1, QHeaderView::Stretch);
-    header->setSectionResizeMode(2, QHeaderView::ResizeToContents);
-
-    // This allows the second column to be resized
-    // in case the user wants to stretch out the filepath column
-    auto colWidth = ui->treeWidget->columnWidth(0);
-    header->setSectionResizeMode(0, QHeaderView::Interactive);
-    ui->treeWidget->setColumnWidth(0, colWidth);
-
-    // Clamps the widget to not stretch beyond the viewport
-    connect(ui->treeWidget->header(), &QHeaderView::sectionResized,
-            this, [=](int logicalIndex, int oldSize, int newSize) {
-                if (logicalIndex == 0 && newSize > colWidth) {
-                    ui->treeWidget->setColumnWidth(0, colWidth);
-                }
-            });
-    // helper function to resize widget colums when expanded or collapsed
-    auto adjustColumnWidth = [=]() {
-        QHeaderView* header = ui->treeWidget->header();
-        // Temporarily resize to fit all visible content
-        header->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-        // Lock new width
-        int updatedColWidth = ui->treeWidget->columnWidth(0);
-        header->setSectionResizeMode(0, QHeaderView::Interactive);
-        ui->treeWidget->setColumnWidth(0, updatedColWidth);
-    };
-    // When a parent is expanded
-    connect(ui->treeWidget, &QTreeWidget::itemExpanded,
-            this, [=](QTreeWidgetItem *) {
-                adjustColumnWidth();
-            });
-    // When a parent is collapsed
-    connect(ui->treeWidget, &QTreeWidget::itemCollapsed,
-            this, [=](QTreeWidgetItem *) {
-                adjustColumnWidth();
-            });
-    // Prevent column resizing beyond viewport width
-    header->setStretchLastSection(false);
-    ui->treeWidget->blockSignals(false);
-}
 
 // Function to manage parent-child checkbox behavior
 void MainWindow::onTreeItemChanged(QTreeWidgetItem *item) {
@@ -693,7 +624,7 @@ void MainWindow::onTrayIconActivated(
             Qui->raise();           // Bring the window to the front
             Qui->activateWindow();  // Give the window focus
             if (!manager->DownloadDupes.empty()) {
-                ShowDownloadDupesInUI(m);
+                ShowDupesInUI(m, FileManager::Downloads);
             }
         } else {
             Qui->raise();
