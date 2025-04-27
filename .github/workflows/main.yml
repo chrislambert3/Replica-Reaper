@@ -110,6 +110,7 @@ jobs:
         id: tagger
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: minor
       - name: Release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main'
@@ -117,5 +118,4 @@ jobs:
           tag_name: "${{steps.tagger.outputs.new_tag}}"
           files: |
             RR-win64-Installer.exe
-            RR-Executable-UnitTests.zip
           generate_release_notes: true
