@@ -142,20 +142,6 @@ void MainWindow::closeEvent(QCloseEvent *event) {
         // Updates to DownLoad Directory
         this->hide();
         event->ignore();
-        // Analyze downloads for background duplicate detection
-        if (manager->AllDownloadsByTypeSize.empty()) {
-            QStringList filePaths = manager->ListFiles(
-                QStandardPaths::writableLocation(QStandardPaths::DownloadLocation));
-            for (int i = 0; i < filePaths.size(); ++i) {
-                fs::path fPath = filePaths[i].toStdString();
-                FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
-                              fs::file_size(fPath));
-                // Push and sort FileInfo class into FileManager class
-                manager->addFileToTypeSizeMap(file, FileManager::Downloads);
-                qDebug() << "analyzing downloads";
-            }
-            qDebug() << "analyzing downloads done";
-        }
     } else {
         qApp->quit();  // Close the full application
         event->accept();
