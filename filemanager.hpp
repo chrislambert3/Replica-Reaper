@@ -28,7 +28,12 @@ class FileManager : public QObject {
     Q_OBJECT
 
  public:
-    typedef enum FilesOrDownloads { Files = 0, Downloads = 1 } FileOrDownloads;
+    typedef enum FilesOrDownloads { Files = 0,
+                                    Downloads = 1,
+                                    Pictures = 2,
+                                    Documents = 3,
+                                    Desktop = 4
+                                } FileOrDownloads;
     explicit FileManager(QObject* parent = nullptr);
     QString PromptDirectory(QWidget* widget);
     QByteArray HashFile(QString fileName);
@@ -53,13 +58,26 @@ class FileManager : public QObject {
     // Map filtered by file type and then file size
     // unordered_map<QString, unordered_map<uintmax_t, std::list<FileInfo>>>
     // AllFilesByTypeSize; Holds list of list of duplicates no particular order
-    unordered_map<QString, unordered_map<uintmax_t, std::list<FileInfo>>>
-        AllFilesByTypeSize;
+
+    // Maps for different directories
+    unordered_map<QString, unordered_map<uintmax_t, std::list<FileInfo>>> AllFilesByTypeSize;
     unordered_map<QByteArray, std::list<FileInfo>> Dupes;
 
-    unordered_map<QString, unordered_map<uintmax_t, std::list<FileInfo>>>
-        AllDownloadsByTypeSize;
+    // Maps for Downloads
+    unordered_map<QString, unordered_map<uintmax_t, std::list<FileInfo>>> AllDownloadsByTypeSize;
     unordered_map<QByteArray, std::list<FileInfo>> DownloadDupes;
+
+    // Maps for Pictures
+    unordered_map<QString, unordered_map<uintmax_t, std::list<FileInfo>>> AllPicturesByTypeSize;
+    unordered_map<QByteArray, std::list<FileInfo>> PicturesDupes;
+
+    // Maps for Documents
+    unordered_map<QString, unordered_map<uintmax_t, std::list<FileInfo>>> AllDocumentsByTypeSize;
+    unordered_map<QByteArray, std::list<FileInfo>> DocumentsDupes;
+
+    // Maps for Desktop
+    unordered_map<QString, unordered_map<uintmax_t, std::list<FileInfo>>> AllDesktopByTypeSize;
+    unordered_map<QByteArray, std::list<FileInfo>> DesktopDupes;
 
  private:
     // QSystemTrayIcon* trayIcon;

@@ -6,6 +6,7 @@
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 #include <QTextBrowser>
+#include <QSignalSpy>
 #include <filesystem>
 #include <string>
 #include "../filemanager.hpp"
@@ -71,10 +72,13 @@ class FileManagerTest : public QObject {
   void test_SettingsApplySettings();
   void test_SettingsCancelButtonClicked();
   void test_SettingsApplyButtonClicked();
-  void test_SettingsSetGetState();
+  void test_SettingsAllDisabled();
 
-
-
+  // Background Processing Tests:
+  void testDirectoryMonitoring();
+  void testDebounceTimer();
+  void testWatcherWithDisabledMonitorMode();
+  void testNotificationDisplay();
 
   // cleanupTestCase() will be called after the last test function was executed.
   void cleanupTestCase();
@@ -140,16 +144,13 @@ void FileManagerTest::testHashFile_data() {
   // "expected
   QTest::newRow("Testing File Hash: test file 1")
       << testFilesPath + "/testfile1.txt"
-      << QByteArray(
-             "522f974c6500eb7923c28e3b129b52a79405f0fa");
+      << QByteArray("522f974c6500eb7923c28e3b129b52a79405f0fa");
   QTest::newRow("Testing File Hash: test file 2")
       << testFilesPath + "/testfile2.txt"
-      << QByteArray(
-             "1278f1b6fde6bda8b911ffb89b3586ca7b73c6a9");
+      << QByteArray("1278f1b6fde6bda8b911ffb89b3586ca7b73c6a9");
   QTest::newRow("Testing File Hash: empty file")
       << testFilesPath + "/empty.txt"
-      << QByteArray(
-             "3345524abf6bbe1809449224b5972c41790b6cf2");
+      << QByteArray("3345524abf6bbe1809449224b5972c41790b6cf2");
   qDebug() << "Hash file data table created";
 }
 
@@ -189,27 +190,27 @@ void FileManagerTest::testListFilesFail() {
 }
 
 void FileManagerTest::testInitAddFileToList() {
-    qDebug("testAddFileToList adding first file test.");
+  qDebug("testAddFileToList adding first file test.");
 
-    // create test files to ensure its added correctly
-    fs::path fPath = fs::current_path() / "TestFiles/testfile1.txt";
-    FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
-                  fs::file_size(fPath),
-                  testManager.HashFile("TestFiles/testfile1.txt"));
+  // create test files to ensure its added correctly
+  fs::path fPath = fs::current_path() / "TestFiles/testfile1.txt";
+  FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
+                fs::file_size(fPath),
+                testManager.HashFile("TestFiles/testfile1.txt"));
 
-    // add test file to list
-    testManager.addFileToTypeSizeMap(file, FileManager::Files);
+  // add test file to list
+  testManager.addFileToTypeSizeMap(file, FileManager::Files);
 
-    // verify file type has 1 entry
-    QVERIFY(testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]
-                .size() == 1);
+  // verify file type has 1 entry
+  QVERIFY(testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]
+              .size() == 1);
 
-    // verify file matches
-    QCOMPARE(
-        testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]
-            .front()
-            .getFilePath(),
-        file.getFilePath());
+  // verify file matches
+  QCOMPARE(
+      testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]
+          .front()
+          .getFilePath(),
+      file.getFilePath());
 }
 
 // Test to check files added to list
@@ -221,14 +222,16 @@ void FileManagerTest::testAddDupeToAddFileToList() {
                 testManager.HashFile("TestFiles/testfile1.txt"));
 
   fs::path fPathDupe = fs::current_path() / "TestFiles/testfile3.txt";
-  FileInfo fileDupe(
-      fPathDupe, QString::fromStdString(fPathDupe.extension().string()),
-      fs::file_size(fPathDupe), testManager.HashFile("TestFiles/testfile3.txt"));
+  FileInfo fileDupe(fPathDupe,
+                    QString::fromStdString(fPathDupe.extension().string()),
+                    fs::file_size(fPathDupe),
+                    testManager.HashFile("TestFiles/testfile3.txt"));
 
   fs::path fPathDiff = fs::current_path() / "TestFiles/testfile2.txt";
-  FileInfo fileDiff(
-      fPathDiff, QString::fromStdString(fPathDiff.extension().string()),
-      fs::file_size(fPathDiff), testManager.HashFile("TestFiles/testfile2.txt"));
+  FileInfo fileDiff(fPathDiff,
+                    QString::fromStdString(fPathDiff.extension().string()),
+                    fs::file_size(fPathDiff),
+                    testManager.HashFile("TestFiles/testfile2.txt"));
 
   qDebug("testAddFileToList verifying duplicate goes to the same list");
 
@@ -241,36 +244,39 @@ void FileManagerTest::testAddDupeToAddFileToList() {
 }
 
 void FileManagerTest::testAddNonDupeToaddFileToTypeSizeMap() {
-    // create test files to ensure its added correctly
-    fs::path fPath = fs::current_path() / "TestFiles/testfile1.txt";
-    FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
-                  fs::file_size(fPath),
-                  testManager.HashFile("TestFiles/testfile1.txt"));
+  // create test files to ensure its added correctly
+  fs::path fPath = fs::current_path() / "TestFiles/testfile1.txt";
+  FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
+                fs::file_size(fPath),
+                testManager.HashFile("TestFiles/testfile1.txt"));
 
-    fs::path fPathDupe = fs::current_path() / "TestFiles/testfile3.txt";
-    FileInfo fileDupe(
-        fPathDupe, QString::fromStdString(fPathDupe.extension().string()),
-        fs::file_size(fPathDupe), testManager.HashFile("TestFiles/testfile3.txt"));
+  fs::path fPathDupe = fs::current_path() / "TestFiles/testfile3.txt";
+  FileInfo fileDupe(fPathDupe,
+                    QString::fromStdString(fPathDupe.extension().string()),
+                    fs::file_size(fPathDupe),
+                    testManager.HashFile("TestFiles/testfile3.txt"));
 
-    fs::path fPathDiff = fs::current_path() / "TestFiles/testfile2.txt";
-    FileInfo fileDiff(
-        fPathDiff, QString::fromStdString(fPathDiff.extension().string()),
-        fs::file_size(fPathDiff), testManager.HashFile("TestFiles/testfile2.txt"));
+  fs::path fPathDiff = fs::current_path() / "TestFiles/testfile2.txt";
+  FileInfo fileDiff(fPathDiff,
+                    QString::fromStdString(fPathDiff.extension().string()),
+                    fs::file_size(fPathDiff),
+                    testManager.HashFile("TestFiles/testfile2.txt"));
 
-    qDebug(
-        "testaddFileToTypeSizeMap verifying non-duplicate goes to different size list");
+  qDebug(
+      "testaddFileToTypeSizeMap verifying non-duplicate goes to different size "
+      "list");
 
-    // add different test file to list
-    testManager.addFileToTypeSizeMap(fileDiff, FileManager::Files);
+  // add different test file to list
+  testManager.addFileToTypeSizeMap(fileDiff, FileManager::Files);
 
-    // test files at different location
-    QVERIFY(testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]
-                .size() == 2);
-    QVERIFY(
-        testManager
-            .AllFilesByTypeSize[fileDiff.getFileType()][fileDiff.getFileSize()]
-            .size() == 1);
-    QVERIFY(file.getHash() != fileDiff.getHash());  // verify different hash
+  // test files at different location
+  QVERIFY(testManager.AllFilesByTypeSize[file.getFileType()][file.getFileSize()]
+              .size() == 2);
+  QVERIFY(
+      testManager
+          .AllFilesByTypeSize[fileDiff.getFileType()][fileDiff.getFileSize()]
+          .size() == 1);
+  QVERIFY(file.getHash() != fileDiff.getHash());  // verify different hash
 }
 
 void FileManagerTest::testProgressBarUpdate() {
@@ -362,16 +368,16 @@ void FileManagerTest::testFileInfoComparisonOperators() {
 }
 
 void FileManagerTest::testFileInfoDateCreated() {
-    qDebug("test date created is correct");
-    fs::path fPath = fs::current_path() / "TestFiles/testfile1.txt";
-    FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
-                  fs::file_size(fPath),
-                  testManager.HashFile("TestFiles/testfile1.txt"));
-    // get date for test
-    QFileInfo fileInfo(QString::fromStdString(fPath.string()));
-    QDateTime time = fileInfo.birthTime();
+  qDebug("test date created is correct");
+  fs::path fPath = fs::current_path() / "TestFiles/testfile1.txt";
+  FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
+                fs::file_size(fPath),
+                testManager.HashFile("TestFiles/testfile1.txt"));
+  // get date for test
+  QFileInfo fileInfo(QString::fromStdString(fPath.string()));
+  QDateTime time = fileInfo.birthTime();
 
-    QCOMPARE(file.getDate(), time);
+  QCOMPARE(file.getDate(), time);
 }
 
 void FileManagerTest::testTreeWidgetHierarchy() {
@@ -490,83 +496,258 @@ void FileManagerTest::testUncheckingAllChildSetsParentUncheck() {
 }
 
 void FileManagerTest::test_TutorialTextBrowserContent() {
-    Tutorial tutorial;
-    auto* textBrowser = tutorial.findChild<QTextBrowser *>("textBrowser");
-    QVERIFY(textBrowser);
-    QVERIFY(textBrowser->toHtml().contains("How to Use Replica Reaper"));
-    QVERIFY(textBrowser->toHtml().contains("Run the Reaper"));
+  Tutorial tutorial;
+  auto *textBrowser = tutorial.findChild<QTextBrowser *>("textBrowser");
+  QVERIFY(textBrowser);
+  QVERIFY(textBrowser->toHtml().contains("How to Use Replica Reaper"));
+  QVERIFY(textBrowser->toHtml().contains("Run the Reaper"));
 }
 
 void FileManagerTest::test_TutorialExternalLinksEnabled() {
-    Tutorial tutorial;
-    auto* textBrowser = tutorial.findChild<QTextBrowser*>("textBrowser");
-    QVERIFY(textBrowser);
-    QVERIFY(textBrowser->openExternalLinks());
+  Tutorial tutorial;
+  auto *textBrowser = tutorial.findChild<QTextBrowser *>("textBrowser");
+  QVERIFY(textBrowser);
+  QVERIFY(textBrowser->openExternalLinks());
 }
 
 void FileManagerTest::test_TutorialButtonsCreation() {
-    Tutorial tutorial;
-    QStringList buttonNames = {"tryDownBTN", "tryDocBTN", "tryPicBTN", "tryDeskBTN"};
-    for (const QString& btnName : buttonNames) {
-        QPushButton* btn = tutorial.findChild<QPushButton*>(btnName);
-        // Check if the button was created
-        QVERIFY(btn);
-    }
+  Tutorial tutorial;
+  QStringList buttonNames = {"tryDownBTN", "tryDocBTN", "tryPicBTN",
+                             "tryDeskBTN"};
+  for (const QString &btnName : buttonNames) {
+    QPushButton *btn = tutorial.findChild<QPushButton *>(btnName);
+    // Check if the button was created
+    QVERIFY(btn);
+  }
 }
 
 void FileManagerTest::test_SettingsComponentCreation() {
-    // Verify all componest have been created
-    Settings dialog;
-    QCheckBox *backgroundCheckBox = dialog.findChild<QCheckBox*>("bgCheckBox");
-    QVERIFY(backgroundCheckBox);
+  // Verify all componest have been created
+  Settings dialog;
+  // Find all checkboxes
+  QCheckBox *monitorCheckBox = dialog.findChild<QCheckBox *>("monitorCheckBox");
+  QVERIFY2(monitorCheckBox, "monitorCheckBox not found");
 
-    QPushButton *applyButton = dialog.findChild<QPushButton*>("applyBTN");
-    QVERIFY(applyButton);
+  QCheckBox *downloadsCheckBox = dialog.findChild<QCheckBox *>("downCheckBox");
+  QVERIFY2(downloadsCheckBox, "downCheckBox not found");
 
-    QPushButton *cancelButton = dialog.findChild<QPushButton*>("cancelBTN");
-    QVERIFY(cancelButton);
-}
+  QCheckBox *picturesCheckBox = dialog.findChild<QCheckBox *>("picCheckBox");
+  QVERIFY2(picturesCheckBox, "picCheckBox not found");
 
-void FileManagerTest::test_SettingsSetGetState() {
-    Settings settings;
-    settings.setState(true);
-    QVERIFY(settings.getState() == true);
+  QCheckBox *desktopCheckBox = dialog.findChild<QCheckBox *>("deskCheckBox");
+  QVERIFY2(desktopCheckBox, "deskCheckBox not found");
 
-    settings.setState(false);
-    QVERIFY(settings.getState() == false);
+  QCheckBox *documentsCheckBox = dialog.findChild<QCheckBox *>("docCheckBox");
+  QVERIFY2(documentsCheckBox, "docCheckBox not found");
+
+  // Find all buttons
+  QPushButton *applyButton = dialog.findChild<QPushButton *>("applyBTN");
+  QVERIFY2(applyButton, "applyBTN not found");
+
+  QPushButton *cancelButton = dialog.findChild<QPushButton *>("cancelBTN");
+  QVERIFY2(cancelButton, "cancelBTN not found");
+
+  // Optional: group box too if you want
+  QGroupBox *groupBox = dialog.findChild<QGroupBox *>("groupBox");
+  QVERIFY2(groupBox, "groupBox not found");
 }
 
 void FileManagerTest::test_SettingsApplySettings() {
-    MainWindow mainWindow;
-    Settings settings(&mainWindow);
-    settings.setState(true);
-    settings.applySettings();
-    QVERIFY(mainWindow.getBackgroundState() == true);
+  MainWindow mainWindow;
+  Settings settings(&mainWindow);
 
-    settings.setState(false);
-    settings.applySettings();
-    QVERIFY(mainWindow.getBackgroundState() == false);
+  Window::AppSettings config;
+  config.monitorMode = true;
+  config.downloads = true;
+  config.pictures = false;
+  config.desktop = true;
+  config.documents = false;
+
+  settings.setConfig(config);
+  settings.applySettings();
+
+  Window::AppSettings applied =
+      mainWindow
+          .getSettings();  // Assuming you have getSettings() in MainWindow
+
+  QVERIFY(applied.monitorMode == true);
+  QVERIFY(applied.downloads == true);
+  QVERIFY(applied.pictures == false);
+  QVERIFY(applied.desktop == true);
+  QVERIFY(applied.documents == false);
 }
 
 void FileManagerTest::test_SettingsApplyButtonClicked() {
-    MainWindow mainWindow;
-    Settings settings(&mainWindow);
-    settings.setState(true);
-    settings.onApplyBTN_clicked();
-    QVERIFY(mainWindow.getBackgroundState() == true);
-    QVERIFY(settings.isHidden());
+  MainWindow mainWindow;
+  Settings settings(&mainWindow);
+
+  Window::AppSettings config;
+  config.monitorMode = true;
+  config.downloads = false;
+  config.pictures = true;
+  config.desktop = true;
+  config.documents = false;
+
+  settings.setConfig(config);
+  settings.onApplyBTN_clicked();
+
+  Window::AppSettings applied = mainWindow.getSettings();
+
+  QVERIFY(applied.monitorMode == true);
+  QVERIFY(applied.pictures == true);
+  QVERIFY(applied.downloads == false);
+  QVERIFY(settings.isHidden());  // confirm dialog hides
+}
+void FileManagerTest::test_SettingsAllDisabled() {
+  MainWindow mainWindow;
+  Settings settings(&mainWindow);
+
+  Window::AppSettings config;
+  config.monitorMode = false;
+  config.downloads = false;
+  config.pictures = false;
+  config.desktop = false;
+  config.documents = false;
+
+  settings.setConfig(config);
+  settings.onApplyBTN_clicked();
+
+  Window::AppSettings applied = mainWindow.getSettings();
+  QVERIFY(applied.monitorMode == false);
+  QVERIFY(applied.downloads == false);
+  QVERIFY(applied.pictures == false);
+  QVERIFY(applied.desktop == false);
+  QVERIFY(applied.documents == false);
 }
 
 void FileManagerTest::test_SettingsCancelButtonClicked() {
-    // Verify that settings closes when cancel button is clicked
-    MainWindow window;
-    Settings settings(&window);
-    settings.show();
-    settings.onCancelBTN_clicked();
-    QVERIFY(settings.isHidden());
-    QVERIFY(window.getBackgroundState() == false);
+  // Verify that settings closes when cancel button is clicked
+  MainWindow mainWindow;
+  Settings settings(&mainWindow);
+
+  Window::AppSettings defaultSettings = mainWindow.getSettings();
+
+  settings.show();
+  settings.onCancelBTN_clicked();
+  QVERIFY(settings.isHidden());
+
+  // Make sure no settings were changed
+  Window::AppSettings afterCancelSettings = mainWindow.getSettings();
+  QVERIFY(afterCancelSettings.monitorMode == defaultSettings.monitorMode);
+  QVERIFY(afterCancelSettings.downloads == defaultSettings.downloads);
+  QVERIFY(afterCancelSettings.pictures == defaultSettings.pictures);
+  QVERIFY(afterCancelSettings.desktop == defaultSettings.desktop);
+  QVERIFY(afterCancelSettings.documents == defaultSettings.documents);
 }
 
+void FileManagerTest::testDirectoryMonitoring() {
+  MainWindow window;
+  QString basePath = QCoreApplication::applicationDirPath();
+  QDir testDir(basePath);
+
+  // Verify the watcher is created
+  QFileSystemWatcher *watcher = window.findChild<QFileSystemWatcher *>();
+  QVERIFY(watcher != nullptr);
+
+  // Verify standard directories are being watched
+  QStringList watchedDirs = watcher->directories();
+  QVERIFY(!watchedDirs.isEmpty());
+
+  // Test adding a new directory
+  QVERIFY(testDir.exists());
+  watcher->addPath(testDir.absolutePath());
+  QVERIFY(watcher->directories().contains(testDir.absolutePath()));
+}
+
+void FileManagerTest::testDebounceTimer() {
+  MainWindow window;
+  QFileSystemWatcher *watcher = window.findChild<QFileSystemWatcher *>();
+  QTimer *debounceTimer = window.findChild<QTimer *>();
+
+  QVERIFY(watcher != nullptr);
+  QVERIFY(debounceTimer != nullptr);
+
+  // Verify timer properties
+  QVERIFY(debounceTimer->isSingleShot());
+  QCOMPARE(debounceTimer->interval(), 500);
+}
+
+void FileManagerTest::testWatcherWithDisabledMonitorMode() {
+  QFileSystemWatcher watcher;
+  QTimer debounceTimer;
+  debounceTimer.setSingleShot(true);  // Only trigger once after the last change
+  debounceTimer.setInterval(500);     // Debounce interval
+
+  QString testDir =
+      QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
+
+  // Connect watcher -> debounce timer
+  QObject::connect(
+      &watcher, &QFileSystemWatcher::directoryChanged,
+      [&](const QString &path) {
+        Q_UNUSED(path);
+        debounceTimer.start();  // Restart timer on each directory change
+      });
+
+  QSignalSpy spy(&debounceTimer, &QTimer::timeout);
+
+  // Add testDir to watcher
+  watcher.addPath(testDir);
+
+  // --- Simulate rapid directory changes ---
+  QFile tempFile1(testDir + "/temp_test_file1.txt");
+  QFile tempFile2(testDir + "/temp_test_file2.txt");
+  QFile tempFile3(testDir + "/temp_test_file3.txt");
+
+  QVERIFY(tempFile1.open(QIODevice::WriteOnly));
+  tempFile1.write("trigger watcher 1");
+  tempFile1.close();
+
+  QTest::qWait(100);  // Wait a bit before next change
+
+  QVERIFY(tempFile2.open(QIODevice::WriteOnly));
+  tempFile2.write("trigger watcher 2");
+  tempFile2.close();
+
+  QTest::qWait(100);
+
+  QVERIFY(tempFile3.open(QIODevice::WriteOnly));
+  tempFile3.write("trigger watcher 3");
+  tempFile3.close();
+
+  QTest::qWait(600);  // Wait long enough for debounce timer to fire
+
+  // Clean up
+  tempFile1.remove();
+  tempFile2.remove();
+  tempFile3.remove();
+
+  QCOMPARE(spy.count(),
+           1);  // Only one timeout should occur after the last change
+}
+
+void FileManagerTest::testNotificationDisplay() {
+  MainWindow window;
+
+  // Create test file
+  QTemporaryFile file;
+  file.open();
+  file.write("Test content");
+  file.close();
+
+  fs::path fPath = file.fileName().toStdString();
+  FileInfo fileInfo(fPath, QString::fromStdString(fPath.extension().string()),
+                    fs::file_size(fPath));
+
+  QSignalSpy spy(&window, &MainWindow::ShowNotification);
+
+  QEventLoop loop;
+  QObject::connect(&window, &MainWindow::ShowNotification, &loop,
+                   &QEventLoop::quit);
+
+  QVERIFY(
+      window.ShowNotification("Duplicate Detected", fileInfo.getFileName()));
+}
 // Cleans up after all test functions have executed
 void FileManagerTest::cleanupTestCase() {
   qDebug("Called after all test cases.");

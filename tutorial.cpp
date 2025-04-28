@@ -1,6 +1,7 @@
 // Copyright 2025 Replica Reaper
 #include "tutorial.hpp"
 #include "ui_tutorial.h"
+#include "mainwindow.hpp"
 /*Tutorial value constructor:
  *
  */
@@ -21,6 +22,11 @@ Tutorial::Tutorial(QWidget *parent) : QDialog(parent), ui(new Ui::Tutorial) {
         QDir dir(path);
         return dir.exists() && !dir.isEmpty();
     };
+
+    connect(ui->tryDownBTN, &QPushButton::clicked, this, &Tutorial::ontryDownBTN_clicked);
+    connect(ui->tryDocBTN,  &QPushButton::clicked, this, &Tutorial::ontryDocBTN_clicked);
+    connect(ui->tryPicBTN,  &QPushButton::clicked, this, &Tutorial::ontryPicBTN_clicked);
+    connect(ui->tryDeskBTN, &QPushButton::clicked, this, &Tutorial::ontryDeskBTN_clicked);
 
     // Collect the standard paths
     QString downloads =
@@ -47,4 +53,29 @@ Tutorial::Tutorial(QWidget *parent) : QDialog(parent), ui(new Ui::Tutorial) {
     }
 }
 
+void Tutorial::StartDemo(FileManager::FilesOrDownloads mode) {
+    MainWindow *mainWindow = qobject_cast<MainWindow *>(parent());
+    if (mainWindow) {
+        mainWindow->setMode(mode);
+        this->hide();
+        mainWindow->onReaperButtonClicked();
+    }
+}
+
 Tutorial::~Tutorial() { delete ui; }
+
+void Tutorial::ontryDownBTN_clicked() {
+    StartDemo(FileManager::Downloads);
+}
+
+void Tutorial::ontryDocBTN_clicked() {
+    StartDemo(FileManager::Documents);
+}
+
+void Tutorial::ontryPicBTN_clicked() {
+    StartDemo(FileManager::Pictures);
+}
+
+void Tutorial::ontryDeskBTN_clicked() {
+    StartDemo(FileManager::Desktop);
+}

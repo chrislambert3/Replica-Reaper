@@ -5,6 +5,7 @@
 #include <QDialog>
 #include <QStandardPaths>
 #include <QDir>
+#include "filemanager.hpp"
 namespace Ui {
 class Tutorial;
 }
@@ -14,7 +15,13 @@ class Tutorial : public QDialog {
 
  public:
     explicit Tutorial(QWidget *parent = nullptr);
-    ~Tutorial();
+     void StartDemo(FileManager::FilesOrDownloads mode);
+     void ontryDownBTN_clicked();
+     void ontryDocBTN_clicked();
+     void ontryPicBTN_clicked();
+     void ontryDeskBTN_clicked();
+
+     ~Tutorial();
 
  private:
     Ui::Tutorial *ui;
