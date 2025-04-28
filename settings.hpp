@@ -20,7 +20,7 @@ class Settings : public QDialog {
     explicit Settings(QWidget *parent = nullptr);
     void applySettings();
     void setConfig(Window::AppSettings settings);
-    Window::AppSettings getConfig(){return this->settignsWin;};
+    Window::AppSettings getConfig() {return this->settignsWin;}
     void onCancelBTN_clicked();
     void onApplyBTN_clicked();
     void closeEvent(QCloseEvent *event);

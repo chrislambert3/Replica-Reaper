@@ -51,7 +51,8 @@ class MainWindow : public QMainWindow {
     list<pair<QString, QString>> getCheckedItems();
     void setQMainWindow(QMainWindow* Qui) { this->Qui = Qui; }
     void setSettings(Window::AppSettings settingsWindow);
-    Window::AppSettings getSettings(){return this->settings;}
+    void setMode(FileManager::FilesOrDownloads mode) {this->mode = mode;}
+    Window::AppSettings getSettings() {return this->settings;}
     void setCancelButtonState(bool state) { cancelButtonState = state; }
     bool getCancelButtonState() const { return cancelButtonState; }
     bool ShowNotification(const QString& title, const QString& message);
@@ -61,6 +62,17 @@ class MainWindow : public QMainWindow {
     qint64 getDirectorySize(const QString &dirPath);
     ~MainWindow();
 
+    // Map that links directory paths to the corresponding FileOrDownloads type
+    std::unordered_map<QString, FileManager::FileOrDownloads> pathToTypeMap = {
+        {QStandardPaths::writableLocation(QStandardPaths::DownloadLocation),
+         FileManager::Downloads},
+        {QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
+         FileManager::Desktop},
+        {QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation),
+         FileManager::Documents},
+        {QStandardPaths::writableLocation(QStandardPaths::PicturesLocation),
+         FileManager::Pictures}
+    };
 
  private slots:
     void onSettBTN_clicked();
@@ -77,5 +89,7 @@ class MainWindow : public QMainWindow {
     QMainWindow* Qui;
     bool cancelButtonState = false;
     FileManager::FileOrDownloads mode = FileManager::Files;
+    QFileSystemWatcher* watcher;
+    QTimer* debounceTimer;
 };
 #endif /* MAINWINDOW_HPP */

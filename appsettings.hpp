@@ -1,3 +1,4 @@
+// Copyright 2025 Replica Reaper
 #ifndef APPSETTINGS_H
 #define APPSETTINGS_H
 namespace Window {
@@ -9,4 +10,4 @@ struct AppSettings {
     bool desktop;
 };
 }
-#endif // APPSETTINGS_H
+#endif  // APPSETTINGS_H
