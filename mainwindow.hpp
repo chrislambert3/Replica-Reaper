@@ -51,9 +51,10 @@ class MainWindow : public QMainWindow {
     list<pair<QString, QString>> getCheckedItems();
     void setQMainWindow(QMainWindow* Qui) { this->Qui = Qui; }
     void setSettings(Window::AppSettings settingsWindow);
+    Window::AppSettings getSettings(){return this->settings;}
     void setCancelButtonState(bool state) { cancelButtonState = state; }
     bool getCancelButtonState() const { return cancelButtonState; }
-    void ShowNotification(const QString& title, const QString& message);
+    bool ShowNotification(const QString& title, const QString& message);
     void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
     void closeEvent(QCloseEvent *event);
     qint64 PythonAutoTestHelper(QString InputPath);

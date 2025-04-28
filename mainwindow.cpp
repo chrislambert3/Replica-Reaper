@@ -687,16 +687,17 @@ void MainWindow::onCancelBTN_clicked() {
 
 ///////
 
-void MainWindow::ShowNotification(const QString& title,
+bool MainWindow::ShowNotification(const QString& title,
                                    const QString& message) {
     if (!QSystemTrayIcon::isSystemTrayAvailable()) {
         qWarning("System tray is not available.");
-        return;
+        return false;
     }
 
     // Display the notification | 10000 ms = 10 seconds till timeout
     this->trayIcon->showMessage(title, message, QSystemTrayIcon::Information,
                                 10000);
+    return true;
 }
 
 // this function activates when the system tray icon is clicked

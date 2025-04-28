@@ -6,6 +6,7 @@
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 #include <QTextBrowser>
+#include <QSignalSpy>
 #include <filesystem>
 #include <string>
 #include "../filemanager.hpp"
@@ -71,7 +72,14 @@ class FileManagerTest : public QObject {
   void test_SettingsApplySettings();
   void test_SettingsCancelButtonClicked();
   void test_SettingsApplyButtonClicked();
-  void test_SettingsSetGetState();
+  void test_SettingsAllDisabled();
+
+  // Background Processing Tests:
+  void testDirectoryMonitoring();
+  void testDebounceTimer();
+  void testWatcherWithDisabledMonitorMode();
+  void testNotificationDisplay();
+
 
 
 
@@ -517,56 +525,229 @@ void FileManagerTest::test_TutorialButtonsCreation() {
 void FileManagerTest::test_SettingsComponentCreation() {
     // Verify all componest have been created
     Settings dialog;
-    QCheckBox *backgroundCheckBox = dialog.findChild<QCheckBox*>("bgCheckBox");
-    QVERIFY(backgroundCheckBox);
+    // Find all checkboxes
+    QCheckBox *monitorCheckBox = dialog.findChild<QCheckBox*>("monitorCheckBox");
+    QVERIFY2(monitorCheckBox, "monitorCheckBox not found");
 
+    QCheckBox *downloadsCheckBox = dialog.findChild<QCheckBox*>("downCheckBox");
+    QVERIFY2(downloadsCheckBox, "downCheckBox not found");
+
+    QCheckBox *picturesCheckBox = dialog.findChild<QCheckBox*>("picCheckBox");
+    QVERIFY2(picturesCheckBox, "picCheckBox not found");
+
+    QCheckBox *desktopCheckBox = dialog.findChild<QCheckBox*>("deskCheckBox");
+    QVERIFY2(desktopCheckBox, "deskCheckBox not found");
+
+    QCheckBox *documentsCheckBox = dialog.findChild<QCheckBox*>("docCheckBox");
+    QVERIFY2(documentsCheckBox, "docCheckBox not found");
+
+    // Find all buttons
     QPushButton *applyButton = dialog.findChild<QPushButton*>("applyBTN");
-    QVERIFY(applyButton);
+    QVERIFY2(applyButton, "applyBTN not found");
 
     QPushButton *cancelButton = dialog.findChild<QPushButton*>("cancelBTN");
-    QVERIFY(cancelButton);
-}
+    QVERIFY2(cancelButton, "cancelBTN not found");
 
-void FileManagerTest::test_SettingsSetGetState() {
-    Settings settings;
-    settings.setState(true);
-    QVERIFY(settings.getState() == true);
+    // Optional: group box too if you want
+    QGroupBox *groupBox = dialog.findChild<QGroupBox*>("groupBox");
+    QVERIFY2(groupBox, "groupBox not found");
 
-    settings.setState(false);
-    QVERIFY(settings.getState() == false);
 }
 
 void FileManagerTest::test_SettingsApplySettings() {
     MainWindow mainWindow;
     Settings settings(&mainWindow);
-    settings.setState(true);
-    settings.applySettings();
-    QVERIFY(mainWindow.getBackgroundState() == true);
 
-    settings.setState(false);
+    Window::AppSettings config;
+    config.monitorMode = true;
+    config.downloads = true;
+    config.pictures = false;
+    config.desktop = true;
+    config.documents = false;
+
+    settings.setConfig(config);
     settings.applySettings();
-    QVERIFY(mainWindow.getBackgroundState() == false);
+
+    Window::AppSettings applied = mainWindow.getSettings(); // Assuming you have getSettings() in MainWindow
+
+    QVERIFY(applied.monitorMode == true);
+    QVERIFY(applied.downloads == true);
+    QVERIFY(applied.pictures == false);
+    QVERIFY(applied.desktop == true);
+    QVERIFY(applied.documents == false);
 }
 
 void FileManagerTest::test_SettingsApplyButtonClicked() {
     MainWindow mainWindow;
     Settings settings(&mainWindow);
-    settings.setState(true);
+
+    Window::AppSettings config;
+    config.monitorMode = true;
+    config.downloads = false;
+    config.pictures = true;
+    config.desktop = true;
+    config.documents = false;
+
+    settings.setConfig(config);
     settings.onApplyBTN_clicked();
-    QVERIFY(mainWindow.getBackgroundState() == true);
-    QVERIFY(settings.isHidden());
+
+    Window::AppSettings applied = mainWindow.getSettings();
+
+    QVERIFY(applied.monitorMode == true);
+    QVERIFY(applied.pictures == true);
+    QVERIFY(applied.downloads == false);
+    QVERIFY(settings.isHidden()); // confirm dialog hides
+}
+void FileManagerTest::test_SettingsAllDisabled() {
+    MainWindow mainWindow;
+    Settings settings(&mainWindow);
+
+    Window::AppSettings config;
+    config.monitorMode = false;
+    config.downloads = false;
+    config.pictures = false;
+    config.desktop = false;
+    config.documents = false;
+
+    settings.setConfig(config);
+    settings.onApplyBTN_clicked();
+
+    Window::AppSettings applied = mainWindow.getSettings();
+    QVERIFY(applied.monitorMode == false);
+    QVERIFY(applied.downloads == false);
+    QVERIFY(applied.pictures == false);
+    QVERIFY(applied.desktop == false);
+    QVERIFY(applied.documents == false);
 }
 
 void FileManagerTest::test_SettingsCancelButtonClicked() {
     // Verify that settings closes when cancel button is clicked
-    MainWindow window;
-    Settings settings(&window);
+    MainWindow mainWindow;
+    Settings settings(&mainWindow);
+
+    Window::AppSettings defaultSettings = mainWindow.getSettings();
+
     settings.show();
     settings.onCancelBTN_clicked();
     QVERIFY(settings.isHidden());
-    QVERIFY(window.getBackgroundState() == false);
+
+    // Make sure no settings were changed
+    Window::AppSettings afterCancelSettings = mainWindow.getSettings();
+    QVERIFY(afterCancelSettings.monitorMode == defaultSettings.monitorMode);
+    QVERIFY(afterCancelSettings.downloads == defaultSettings.downloads);
+    QVERIFY(afterCancelSettings.pictures == defaultSettings.pictures);
+    QVERIFY(afterCancelSettings.desktop == defaultSettings.desktop);
+    QVERIFY(afterCancelSettings.documents == defaultSettings.documents);
 }
 
+
+void FileManagerTest::testDirectoryMonitoring()
+{
+    MainWindow window;
+    QString basePath = QCoreApplication::applicationDirPath();
+    QDir testDir(basePath);
+
+    // Verify the watcher is created
+    QFileSystemWatcher* watcher = window.findChild<QFileSystemWatcher*>();
+    QVERIFY(watcher != nullptr);
+
+    // Verify standard directories are being watched
+    QStringList watchedDirs = watcher->directories();
+    QVERIFY(!watchedDirs.isEmpty());
+
+    // Test adding a new directory
+    QVERIFY(testDir.exists());
+    watcher->addPath(testDir.absolutePath());
+    QVERIFY(watcher->directories().contains(testDir.absolutePath()));
+}
+
+void FileManagerTest::testDebounceTimer()
+{
+    MainWindow window;
+    QFileSystemWatcher* watcher = window.findChild<QFileSystemWatcher*>();
+    QTimer* debounceTimer = window.findChild<QTimer*>();
+
+    QVERIFY(watcher != nullptr);
+    QVERIFY(debounceTimer != nullptr);
+
+    // Verify timer properties
+    QVERIFY(debounceTimer->isSingleShot());
+    QCOMPARE(debounceTimer->interval(), 500);
+
+}
+
+void FileManagerTest::testWatcherWithDisabledMonitorMode()
+{
+    QFileSystemWatcher watcher;
+    QTimer debounceTimer;
+    debounceTimer.setSingleShot(true); // Only trigger once after the last change
+    debounceTimer.setInterval(500); // Debounce interval
+
+    QString testDir = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
+
+    // Connect watcher -> debounce timer
+    QObject::connect(&watcher, &QFileSystemWatcher::directoryChanged, [&](const QString& path){
+        Q_UNUSED(path);
+        debounceTimer.start(); // Restart timer on each directory change
+    });
+
+    QSignalSpy spy(&debounceTimer, &QTimer::timeout);
+
+    // Add testDir to watcher
+    watcher.addPath(testDir);
+
+    // --- Simulate rapid directory changes ---
+    QFile tempFile1(testDir + "/temp_test_file1.txt");
+    QFile tempFile2(testDir + "/temp_test_file2.txt");
+    QFile tempFile3(testDir + "/temp_test_file3.txt");
+
+    QVERIFY(tempFile1.open(QIODevice::WriteOnly));
+    tempFile1.write("trigger watcher 1");
+    tempFile1.close();
+
+    QTest::qWait(100);  // Wait a bit before next change
+
+    QVERIFY(tempFile2.open(QIODevice::WriteOnly));
+    tempFile2.write("trigger watcher 2");
+    tempFile2.close();
+
+    QTest::qWait(100);
+
+    QVERIFY(tempFile3.open(QIODevice::WriteOnly));
+    tempFile3.write("trigger watcher 3");
+    tempFile3.close();
+
+    QTest::qWait(600);  // Wait long enough for debounce timer to fire
+
+    // Clean up
+    tempFile1.remove();
+    tempFile2.remove();
+    tempFile3.remove();
+
+    QCOMPARE(spy.count(), 1);  // Only one timeout should occur after the last change
+}
+
+void FileManagerTest::testNotificationDisplay()
+{
+    MainWindow window;
+
+    // Create test file
+    QTemporaryFile file;
+    file.open();
+    file.write("Test content");
+    file.close();
+
+    fs::path fPath = file.fileName().toStdString();
+    FileInfo fileInfo(fPath, QString::fromStdString(fPath.extension().string()),
+                      fs::file_size(fPath));
+
+    QSignalSpy spy(&window, &MainWindow::ShowNotification);
+
+    QEventLoop loop;
+    QObject::connect(&window, &MainWindow::ShowNotification, &loop, &QEventLoop::quit);
+
+    QVERIFY(window.ShowNotification("Duplicate Detected", fileInfo.getFileName()));
+}
 // Cleans up after all test functions have executed
 void FileManagerTest::cleanupTestCase() {
   qDebug("Called after all test cases.");

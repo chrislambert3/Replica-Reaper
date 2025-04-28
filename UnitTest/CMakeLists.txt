@@ -22,7 +22,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # 3. add another add executable line (below)
 # Ex. If <somefile>.cpp has " #include ../<someheader>.h "
 # add_executable(UnitTests ... ... "tst_<somefile>.cpp"  "../<whatever was inluded mathcing cpp file>.cpp" )
-add_executable(UnitTests tst_filemanager.cpp ../filemanager.cpp ../mainwindow.cpp ../settings.cpp ../tutorial.cpp)
+add_executable(UnitTests tst_filemanager.cpp ../filemanager.cpp ../mainwindow.cpp ../settings.cpp ../tutorial.cpp
+    assets.qrc)
 target_link_libraries(UnitTests PRIVATE Qt${QT_VERSION_MAJOR}::Gui Qt${QT_VERSION_MAJOR}::Test Qt${QT_VERSION_MAJOR}::Widgets)
 
 #<--- This line implements the whole file as ONE test case for Ctest--->
