@@ -81,7 +81,9 @@ Replace `<QT-VERSION>` with whatever version number is in yout installation. Thi
 5. Build and run the program, this will test run time
     on various generic folders
 6. Navigate to "Auto.py" in the repositories main folder
-7. Run "Auto.py" with your preferred interpreter.
+7. run "pip install cpuinfo" in the terminal if this library
+    not installed locally.
+8. Run "Auto.py" with your preferred interpreter.
 
 ## Contact Info
 
