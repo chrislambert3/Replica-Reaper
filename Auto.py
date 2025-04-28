@@ -30,13 +30,19 @@ def display_table(data):
     df = pd.DataFrame(table_data, columns=columns)
     ax.axis('tight')
     ax.axis('off')
-    ax.table(cellText=df.values, colLabels=df.columns, cellLoc='center', loc='center')
+    #ax.table(cellText=df.values, colLabels=df.columns, cellLoc='center', loc='center')
+
+    table = ax.table(cellText=df.values, colLabels=df.columns, cellLoc='center', loc='center')
+    table.scale(1, 1.5)  # Scale the table to reduce its height if needed
 
     cpu_info = cpuinfo.get_cpu_info()
     processor_brand = cpu_info.get('brand_raw', 'Unknown Processor')
     system_info = f"{platform.system()} {platform.release()} ({processor_brand})"
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    plt.title(f"Run Time Performance Analysis\nGenerated on: {timestamp}\nSystem: {system_info}")
+
+    plt.title(f"Run Time Performance Analysis\nGenerated on: {timestamp}\nSystem: {system_info}", pad = 5)
+    plt.tight_layout()
+    plt.subplots_adjust(top=.85, bottom = .15)
     plt.show()
 
 #csv_file = "C:\\Users\\brade\\Documents\\GitHub\\Replica-Reaper\\build\\Desktop_Qt_6_8_2_MinGW_64_bit-Debug\\Performance.csv"
