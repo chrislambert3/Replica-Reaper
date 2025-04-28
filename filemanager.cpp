@@ -91,15 +91,32 @@ QStringList FileManager::ListFiles(const QString& directoryPath) {
  */
 bool FileManager::isDupe(FileInfo& file, FileOrDownloads ChooseWhich) {
     QByteArray FileHash = HashFile(QString::fromStdString(file.getFilePath().string()));
-    if (ChooseWhich == Files) {
+
+    switch (ChooseWhich) {
+    case Files: {
         auto it = Dupes.find(FileHash);
         return (it != Dupes.end()) ? true : false;
-    } else if (ChooseWhich == Downloads) {
+    }
+    case Downloads: {
         auto it = DownloadDupes.find(FileHash);
         return (it != DownloadDupes.end()) ? true : false;
     }
-    qDebug() << "error in isDupe()";
-    return false;
+    case Pictures: {
+        auto it = PicturesDupes.find(FileHash);
+        return (it != PicturesDupes.end()) ? true : false;
+    }
+    case Documents: {
+        auto it = DocumentsDupes.find(FileHash);
+        return (it != DocumentsDupes.end()) ? true : false;
+    }
+    case Desktop: {
+        auto it = DesktopDupes.find(FileHash);
+        return (it != DesktopDupes.end()) ? true : false;
+    }
+    default:
+        qDebug() << "error in isDupe()";
+        return false;
+    }
 }
 
 /* AddFileToTypeSizeMap(): Adds a single file to the data member
@@ -113,30 +130,61 @@ bool FileManager::isDupe(FileInfo& file, FileOrDownloads ChooseWhich) {
 void FileManager::addFileToTypeSizeMap(FileInfo& file, FileOrDownloads ChooseWhich) {
     // key == input files type
     // value == size map for that type
-    if (ChooseWhich == Files) {
-            // key == input files type
-            // value == size map for that type
-        auto& sizeMap =
-            AllFilesByTypeSize[file.getFileType()];
+    switch (ChooseWhich) {
+    case Files: {
+        // key == input files type
+        // value == size map for that type
+        auto& sizeMap = AllFilesByTypeSize[file.getFileType()];
         // key == input file size
         // value = list for that type and size
-        auto& fileList =
-            sizeMap[file.getFileSize()];
+        auto& fileList = sizeMap[file.getFileSize()];
 
         fileList.push_back(file);
 
         // if list has > 1 size, check dupes and hash files
         // for later duplicate detection.
         if (fileList.size() > 1) CheckAndAddDupes(fileList, Files);
-    } else if (ChooseWhich == Downloads) {
-        auto& sizeMap =
-            AllDownloadsByTypeSize[file.getFileType()];
-        auto& fileList =
-            sizeMap[file.getFileSize()];
+        break;
+    }
+    case Downloads: {
+        auto& sizeMap = AllDownloadsByTypeSize[file.getFileType()];
+        auto& fileList = sizeMap[file.getFileSize()];
 
         fileList.push_back(file);
 
         if (fileList.size() > 1) CheckAndAddDupes(fileList, Downloads);
+        break;
+    }
+    case Pictures: {
+        auto& sizeMap = AllPicturesByTypeSize[file.getFileType()];
+        auto& fileList = sizeMap[file.getFileSize()];
+
+        fileList.push_back(file);
+
+        if (fileList.size() > 1) CheckAndAddDupes(fileList, Pictures);
+        break;
+    }
+    case Documents: {
+        auto& sizeMap = AllDocumentsByTypeSize[file.getFileType()];
+        auto& fileList = sizeMap[file.getFileSize()];
+
+        fileList.push_back(file);
+
+        if (fileList.size() > 1) CheckAndAddDupes(fileList, Documents);
+        break;
+    }
+    case Desktop: {
+        auto& sizeMap = AllDesktopByTypeSize[file.getFileType()];
+        auto& fileList = sizeMap[file.getFileSize()];
+
+        fileList.push_back(file);
+
+        if (fileList.size() > 1) CheckAndAddDupes(fileList, Desktop);
+        break;
+    }
+    default:
+        qWarning() << "Unknown directory type in addFileToTypeSizeMap";
+        break;
     }
 }
 /* CheckAndAddDupes(): Checks a list of FileInfo Objects
@@ -175,10 +223,31 @@ void FileManager::CheckAndAddDupes(std::list<FileInfo>& list, FileOrDownloads Ch
             if (earliest != dList.end()) {
                 dList.splice(dList.begin(), dList, earliest);
             }
-            if (ChooseWhich == Files) {
+            // Switch-case to determine where to store duplicates
+            switch (ChooseWhich) {
+            case Files: {
                 Dupes[hash] = dList;
-            } else if (ChooseWhich == Downloads) {
+                break;
+            }
+            case Downloads: {
                 DownloadDupes[hash] = dList;
+                break;
+            }
+            case Pictures: {
+                PicturesDupes[hash] = dList;
+                break;
+            }
+            case Documents: {
+                DocumentsDupes[hash] = dList;
+                break;
+            }
+            case Desktop: {
+                DesktopDupes[hash] = dList;
+                break;
+            }
+            default:
+                qDebug() << "error in CheckAndAddDupes()";
+                break;
             }
         }
     }
