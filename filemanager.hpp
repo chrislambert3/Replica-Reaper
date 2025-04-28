@@ -61,6 +61,12 @@ class FileManager : public QObject {
         AllDownloadsByTypeSize;
     unordered_map<QByteArray, std::list<FileInfo>> DownloadDupes;
 
+    // Maps for Pictures
+    unordered_map<QByteArray, std::list<FileInfo>> PicturesDupes;
+    // Maps for Documents
+    unordered_map<QByteArray, std::list<FileInfo>> DocumentsDupes;
+    // Maps for Desktop
+    unordered_map<QByteArray, std::list<FileInfo>> DesktopDupes;
  private:
     // QSystemTrayIcon* trayIcon;
     // QAction* quitAction;

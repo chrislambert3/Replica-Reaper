@@ -11,6 +11,7 @@ Settings::Settings(QWidget *parent) : QDialog(parent), ui(new Ui::Settings) {
     connect(ui->cancelBTN, &QPushButton::clicked, this,
             &Settings::onCancelBTN_clicked);
     // monitor check box function
+    ui->groupBox->setEnabled(false);
     connect(ui->monitorCheckBox, &QCheckBox::checkStateChanged, this, [=](int state){
         ui->groupBox->setEnabled(state == Qt::Checked);
     });
@@ -28,17 +29,27 @@ void Settings::closeEvent(QCloseEvent *event) {
     // event->accept();
 }
 
-void Settings::setState(bool backgroundCheck) {
-    ui->bgCheckBox->setCheckState(backgroundCheck ? Qt::Checked : Qt::Unchecked);
-}
-bool Settings::getState() {
-    return ui->bgCheckBox->isChecked();
+void Settings::setConfig(Window::AppSettings settings) {
+    auto getMode = [](bool mode){return mode ? Qt::Checked : Qt::Unchecked;};
+    ui->monitorCheckBox->setCheckState(getMode(settings.monitorMode));
+    ui->downCheckBox->setCheckState(getMode(settings.downloads));
+    ui->picCheckBox->setCheckState(getMode(settings.pictures));
+    ui->deskCheckBox->setCheckState(getMode(settings.desktop));
+    ui->docCheckBox->setCheckState(getMode(settings.documents));
 }
 // applies the changed settings in the mainwindow
 void Settings::applySettings() {
+    // Update settignsWin based on current UI values
+    auto getState = [](Qt::CheckState state) { return state == Qt::Checked; };
+    settignsWin.monitorMode = getState(ui->monitorCheckBox->checkState());
+    settignsWin.downloads = getState(ui->downCheckBox->checkState());
+    settignsWin.pictures = getState(ui->picCheckBox->checkState());
+    settignsWin.desktop = getState(ui->deskCheckBox->checkState());
+    settignsWin.documents = getState(ui->docCheckBox->checkState());
+
+    // pass MainWindow new settings
     MainWindow *mainWindow = qobject_cast<MainWindow *>(parent());
     if (mainWindow) {
-        // Update the parent window's state
-        mainWindow->setBackgroundState(ui->bgCheckBox->isChecked());
+        mainWindow->setSettings(this->settignsWin);
     }
 }

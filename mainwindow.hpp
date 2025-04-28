@@ -24,6 +24,7 @@
 #include "FileInfo.hpp"
 #include "settings.hpp"
 #include "tutorial.hpp"
+#include "appsettings.hpp"
 
 using std::list;
 using std::pair;
@@ -34,9 +35,6 @@ class MainWindow;
 }
 QT_END_NAMESPACE
 
-struct AppSettings {
-    bool backgroundCheck = false;
-};
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -51,9 +49,8 @@ class MainWindow : public QMainWindow {
     void onDelAllBTN_clicked();
     void onCancelBTN_clicked();
     list<pair<QString, QString>> getCheckedItems();
-    void setBackgroundState(bool state) { settings.backgroundCheck = state;}
-    bool getBackgroundState() { return settings.backgroundCheck;}
     void setQMainWindow(QMainWindow* Qui) { this->Qui = Qui; }
+    void setSettings(Window::AppSettings settingsWindow);
     void setCancelButtonState(bool state) { cancelButtonState = state; }
     bool getCancelButtonState() const { return cancelButtonState; }
     void ShowNotification(const QString& title, const QString& message);
@@ -63,6 +60,7 @@ class MainWindow : public QMainWindow {
     qint64 getDirectorySize(const QString &dirPath);
     ~MainWindow();
 
+
  private slots:
     void onSettBTN_clicked();
     void onHowUseBTN_clicked();
@@ -71,7 +69,7 @@ class MainWindow : public QMainWindow {
     Ui::MainWindow *ui;
     FileManager *manager;
     Tutorial *tutorial = nullptr;
-    AppSettings settings;
+    Window::AppSettings settings;
     QSystemTrayIcon* trayIcon;
     QAction* quitAction;
     QMenu* trayMenu;

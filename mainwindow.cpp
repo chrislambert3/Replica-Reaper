@@ -115,7 +115,7 @@ MainWindow::MainWindow(QWidget *parent)
                 FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
                               fs::file_size(fPath));
 
-                manager->addFileToTypeSizeMap(file, FileManager::Downloads);
+                // manager->addFileToTypeSizeMap(file, FileManager::Downloads);
                 if (manager->isDupe(file, FileManager::Downloads)) {
                     ShowNotification("Duplicate Detected, Open ReplicaReaper to delete: "
                                               , file.getFileName());
@@ -137,7 +137,7 @@ MainWindow::~MainWindow() {
 // Overloaded function that automatically gets called when user closes UI
 void MainWindow::closeEvent(QCloseEvent *event) {
     // if the "Run in Background" button is checked,
-    if (this->settings.backgroundCheck) {
+    if (this->settings.monitorMode) {
         // Program will run in background to check for
         // Updates to DownLoad Directory
         this->hide();
@@ -160,6 +160,14 @@ void MainWindow::closeEvent(QCloseEvent *event) {
         qApp->quit();  // Close the full application
         event->accept();
     }
+}
+
+void MainWindow::setSettings(Window::AppSettings settingsWindow){
+    this->settings.monitorMode = settingsWindow.monitorMode;
+    this->settings.downloads = settingsWindow.downloads;
+    this->settings.desktop = settingsWindow.desktop;
+    this->settings.pictures = settingsWindow.pictures;
+    this->settings.documents = settingsWindow.documents;
 }
 
 /* onReaperButtonClicked(): called when the reaper button is
@@ -501,7 +509,7 @@ qint64 MainWindow::getDirectorySize(const QString &dirPath) {
 }
 void MainWindow::onSettBTN_clicked() {
     Settings *settings = new Settings(this);
-    settings->setState(this->settings.backgroundCheck);
+    settings->setConfig(this->settings);
     settings->setModal(true);
     settings->exec();
 }
