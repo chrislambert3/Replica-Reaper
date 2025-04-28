@@ -75,5 +75,6 @@ class MainWindow : public QMainWindow {
     QMenu* trayMenu;
     QMainWindow* Qui;
     bool cancelButtonState = false;
+    FileManager::FileOrDownloads mode = FileManager::Files;
 };
 #endif /* MAINWINDOW_HPP */

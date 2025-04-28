@@ -77,16 +77,28 @@ MainWindow::MainWindow(QWidget *parent)
         Qui->show();
         Qui->raise();
         Qui->activateWindow();
+        if(this->mode != FileManager::Files){
+            ShowDupesInUI(*manager, mode);
+        }
+        this->mode = FileManager::Files;
     });
     this->trayIcon->show();
 
     // tray icon shit end
 
-
+    // Map that links directory paths to the corresponding FileOrDownloads type
+    std::unordered_map<QString, FileManager::FileOrDownloads> pathToTypeMap = {
+        {QStandardPaths::writableLocation(QStandardPaths::DownloadLocation), FileManager::Downloads},
+        {QStandardPaths::writableLocation(QStandardPaths::DesktopLocation), FileManager::Desktop},
+        {QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), FileManager::Documents},
+        {QStandardPaths::writableLocation(QStandardPaths::PicturesLocation), FileManager::Pictures}
+    };
     // Download check loop start
 
     QFileSystemWatcher* watcher = new QFileSystemWatcher(this);
-    watcher->addPath(QStandardPaths::writableLocation(QStandardPaths::DownloadLocation));
+    for (const auto& pathType : pathToTypeMap) {
+        watcher->addPath(pathType.first);
+    }
 
     QTimer* debounceTimer = new QTimer(this);
     debounceTimer->setSingleShot(true);
@@ -95,53 +107,90 @@ MainWindow::MainWindow(QWidget *parent)
     // wrapper around file checker to prevent multiple of same calls
     connect(watcher, &QFileSystemWatcher::directoryChanged, this, [=](const QString& path){
         debounceTimer->start();  // Restart the debounce timer
+        debounceTimer->setProperty("changedPath", path); // store changed path
     });
 
     connect(debounceTimer, &QTimer::timeout, this, [=](){
-        // get newest file
-        QDir dir(QStandardPaths::writableLocation(QStandardPaths::DownloadLocation));
-        dir.setFilter(QDir::Files | QDir::NoSymLinks);
-        dir.setSorting(QDir::Time | QDir::Reversed);
+        // If monitor mode is off, ignore everything
+        if (!settings.monitorMode) {
+            return;
+        }
+        // Get the changed directory path from the timer property
+        QString changedPath = debounceTimer->property("changedPath").toString();
 
-        QFileInfoList fileList = dir.entryInfoList();
+        if (pathToTypeMap.find(changedPath) != pathToTypeMap.end()) {
+            // Get the directory type from the map
+            FileManager::FileOrDownloads dirType = pathToTypeMap.find(changedPath)->second;
 
-        if (!fileList.isEmpty()) {
-            QFileInfo lastFile = fileList.last();
-            if (lastFile.suffix() != "tmp") {
-                qDebug() << "NEWFILE:" << lastFile.absoluteFilePath();
-                // Do detections here
+            // check settigns if directory is enabled
+            bool allowProcess = false;
+            switch (dirType) {
+            case FileManager::FileOrDownloads::Downloads:
+                allowProcess = settings.downloads;
+                break;
+            case FileManager::FileOrDownloads::Pictures:
+                allowProcess = settings.pictures;
+                break;
+            case FileManager::FileOrDownloads::Desktop:
+                allowProcess = settings.desktop;
+                break;
+            case FileManager::FileOrDownloads::Documents:
+                allowProcess = settings.documents;
+                break;
+            default:
+                break;
+            }
 
-                // Compare the recent file to the other files in the directory
-                // (filters by size and type)
-                for (const QFileInfo& otherFileInfo : fileList) {
-                    if (lastFile.absoluteFilePath() == otherFileInfo.absoluteFilePath()) {
-                        continue;  // Skip the same file
-                    }
+            if (!allowProcess) {
+                return; // Specific setting is OFF, ignore
+            }
 
-                    // Compare by size then suffix
-                    if (lastFile.size() == otherFileInfo.size() &&
-                        lastFile.suffix() == otherFileInfo.suffix()) {
-                        // Create FileInfo for the recent and other file
-                        fs::path lastFPath = otherFileInfo.absoluteFilePath().toStdString();
-                        FileInfo lastFile(lastFPath, QString::fromStdString(lastFPath.extension().string()), fs::file_size(lastFPath));
-                        fs::path otherFPath = otherFileInfo.absoluteFilePath().toStdString();
-                        FileInfo otherFile(otherFPath, QString::fromStdString(otherFPath.extension().string()), fs::file_size(otherFPath));
+            QDir dir(changedPath);
+            dir.setFilter(QDir::Files | QDir::NoSymLinks);
+            dir.setSorting(QDir::Time | QDir::Reversed);
 
-                        if (lastFile == otherFile) {
-                            // Duplicate found, add to map
-                            manager->addFileToTypeSizeMap(otherFile, FileManager::Downloads);
+            QFileInfoList fileList = dir.entryInfoList();
+
+            if (!fileList.isEmpty()) {
+                QFileInfo lastFile = fileList.last();
+                if (lastFile.suffix() != "tmp") {
+                    qDebug() << "NEWFILE:" << lastFile.absoluteFilePath();
+
+                    // Compare the recent file to the other files in the directory
+                    // (filters by size and type)
+                    for (const QFileInfo& otherFileInfo : fileList) {
+                        if (lastFile.absoluteFilePath() == otherFileInfo.absoluteFilePath()) {
+                            continue;  // Skip the same file
+                        }
+
+                        // Compare by size then suffix
+                        if (lastFile.size() == otherFileInfo.size() &&
+                            lastFile.suffix() == otherFileInfo.suffix()) {
+                            // Create FileInfo for the recent and other file
+                            fs::path lastFPath = otherFileInfo.absoluteFilePath().toStdString();
+                            FileInfo lastFile(lastFPath, QString::fromStdString(lastFPath.extension().string()), fs::file_size(lastFPath));
+                            fs::path otherFPath = otherFileInfo.absoluteFilePath().toStdString();
+                            FileInfo otherFile(otherFPath, QString::fromStdString(otherFPath.extension().string()), fs::file_size(otherFPath));
+
+                            if (lastFile == otherFile) {
+                                // Duplicate found, add to the corresponding map
+                                manager->addFileToTypeSizeMap(otherFile, dirType);
+                            }
                         }
                     }
-                }
-                // add the original file
-                fs::path fPath = lastFile.absoluteFilePath().toStdString();
-                FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
-                              fs::file_size(fPath));
 
-                manager->addFileToTypeSizeMap(file, FileManager::Downloads);
-                if (manager->isDupe(file, FileManager::Downloads)) {
-                    ShowNotification("Duplicate Detected, Open ReplicaReaper to delete: "
-                                              , file.getFileName());
+                    // Add the original file for detection
+                    fs::path fPath = lastFile.absoluteFilePath().toStdString();
+                    FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
+                                  fs::file_size(fPath));
+
+                    manager->addFileToTypeSizeMap(file, dirType);
+
+                    // Check if it's a duplicate
+                    if (manager->isDupe(file, dirType)) {
+                        ShowNotification("Duplicate Detected, Open ReplicaReaper to delete: ", file.getFileName());
+                        this->mode = dirType;
+                    }
                 }
             }
         }
@@ -273,10 +322,32 @@ void MainWindow::onReaperButtonClicked() {
 void MainWindow::ShowDupesInUI(const FileManager &f, FileManager::FileOrDownloads choice) {
     ui->treeWidget->blockSignals(true);
     // determine which map to iterate over
-    const auto& DupesMap = (choice == FileManager::Files) ? f.Dupes : f.DownloadDupes;
+    //const auto& DupesMap = (choice == FileManager::Files) ? f.Dupes : f.DownloadDupes;
+
+    const std::unordered_map<QByteArray, std::list<FileInfo>> *DupesMap;
+
+    switch (choice) {
+    case FileManager::Files:
+        DupesMap = &f.Dupes; // Assign f.Dupes map for File case
+        break;
+    case FileManager::Downloads:
+        DupesMap = &f.DownloadDupes; // Assign f.DownloadDupes map for Download case
+        break;
+    case FileManager::Documents:
+        DupesMap = &f.DocumentsDupes;
+        break;
+    case FileManager::Desktop:
+        DupesMap = &f.DesktopDupes;
+        break;
+    default:
+        // Handle invalid or unsupported enum values
+        qDebug() << "Unsupported choice for DupesMap";
+        ui->treeWidget->blockSignals(false);
+        return;
+    }
 
     QString out;
-    for (auto it = DupesMap.begin(); it != DupesMap.end(); ++it) {
+    for (auto it = DupesMap->begin(); it != DupesMap->end(); ++it) {
         // Make a parent item for the list tree widget
         QTreeWidgetItem *parentHashItem = new QTreeWidgetItem(ui->treeWidget);
         parentHashItem->setText(0, it->second.front().getFileName());
@@ -639,8 +710,9 @@ void MainWindow::onTrayIconActivated(
             Qui->show();            // Show the window if hidden
             Qui->raise();           // Bring the window to the front
             Qui->activateWindow();  // Give the window focus
-            if (!manager->DownloadDupes.empty()) {
-                ShowDupesInUI(m, FileManager::Downloads);
+            // If background detection is not enabled (Files Mode) dont show found duplicates
+            if(this->mode != FileManager::Files){
+                ShowDupesInUI(m,this->mode);
             }
         } else {
             Qui->raise();
