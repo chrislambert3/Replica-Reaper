@@ -42,7 +42,7 @@ def display_table(data):
 
     plt.title(f"Run Time Performance Analysis\nGenerated on: {timestamp}\nSystem: {system_info}", pad = 5)
     plt.tight_layout()
-    plt.subplots_adjust(top=.85, bottom = .15)
+    plt.subplots_adjust(top=.825, bottom = .15)
     plt.show()
 
 #csv_file = "C:\\Users\\brade\\Documents\\GitHub\\Replica-Reaper\\build\\Desktop_Qt_6_8_2_MinGW_64_bit-Debug\\Performance.csv"
