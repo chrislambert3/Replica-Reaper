@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package>
+    <DisplayName>Main Application</DisplayName>
+    <Description>Installs Replica Reaper</Description>
+    <Version>1.1.0-1</Version>
+    <ReleaseDate>2025-04-16</ReleaseDate>
+    <Licenses>
+        <License name="Replica Reaper License Agreement" file="license.txt" />
+    </Licenses>
+    <Default>script</Default>
+    <Script>installscript.qs</Script>
+    <UserInterfaces>
+        <UserInterface>page.ui</UserInterface>
+    </UserInterfaces>
+</Package>
