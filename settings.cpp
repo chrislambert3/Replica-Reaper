@@ -10,6 +10,10 @@ Settings::Settings(QWidget *parent) : QDialog(parent), ui(new Ui::Settings) {
             &Settings::onApplyBTN_clicked);
     connect(ui->cancelBTN, &QPushButton::clicked, this,
             &Settings::onCancelBTN_clicked);
+    // monitor check box function
+    connect(ui->monitorCheckBox, &QCheckBox::checkStateChanged, this, [=](int state){
+        ui->groupBox->setEnabled(state == Qt::Checked);
+    });
 }
 
 Settings::~Settings() { delete ui; }

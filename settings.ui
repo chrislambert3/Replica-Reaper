@@ -51,24 +51,61 @@
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="formLayoutWidget">
+  <widget class="QGroupBox" name="groupBox">
    <property name="geometry">
     <rect>
-     <x>79</x>
-     <y>50</y>
-     <width>191</width>
-     <height>181</height>
+     <x>60</x>
+     <y>30</y>
+     <width>261</width>
+     <height>201</height>
     </rect>
    </property>
-   <layout class="QFormLayout" name="formLayout_2">
-    <item row="0" column="0">
+   <property name="title">
+    <string>Enable Monitoring ?</string>
+   </property>
+   <layout class="QFormLayout" name="formLayout">
+    <item row="0" column="0" colspan="2">
      <widget class="QCheckBox" name="bgCheckBox">
       <property name="text">
-       <string>Run in Background?</string>
+       <string>Downloads</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0" colspan="2">
+     <widget class="QCheckBox" name="checkBox">
+      <property name="text">
+       <string>Pictures</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0" colspan="2">
+     <widget class="QCheckBox" name="checkBox_2">
+      <property name="text">
+       <string>Desktop</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QCheckBox" name="checkBox_3">
+      <property name="text">
+       <string>Documents</string>
       </property>
      </widget>
     </item>
    </layout>
+  </widget>
+  <widget class="QCheckBox" name="monitorCheckBox">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>30</y>
+     <width>21</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
   </widget>
  </widget>
  <resources/>
