@@ -111,11 +111,34 @@ MainWindow::MainWindow(QWidget *parent)
                 qDebug() << "NEWFILE:" << lastFile.absoluteFilePath();
                 // Do detections here
 
+                // Compare the recent file to the other files in the directory
+                // (filters by size and type)
+                for (const QFileInfo& otherFileInfo : fileList) {
+                    if (lastFile.absoluteFilePath() == otherFileInfo.absoluteFilePath()) {
+                        continue;  // Skip the same file
+                    }
+
+                    // Compare by size then suffix
+                    if (lastFile.size() == otherFileInfo.size() &&
+                        lastFile.suffix() == otherFileInfo.suffix()) {
+                        // Create FileInfo for the recent and other file
+                        fs::path lastFPath = otherFileInfo.absoluteFilePath().toStdString();
+                        FileInfo lastFile(lastFPath, QString::fromStdString(lastFPath.extension().string()), fs::file_size(lastFPath));
+                        fs::path otherFPath = otherFileInfo.absoluteFilePath().toStdString();
+                        FileInfo otherFile(otherFPath, QString::fromStdString(otherFPath.extension().string()), fs::file_size(otherFPath));
+
+                        if (lastFile == otherFile) {
+                            // Duplicate found, add to map
+                            manager->addFileToTypeSizeMap(otherFile, FileManager::Downloads);
+                        }
+                    }
+                }
+                // add the original file
                 fs::path fPath = lastFile.absoluteFilePath().toStdString();
                 FileInfo file(fPath, QString::fromStdString(fPath.extension().string()),
                               fs::file_size(fPath));
 
-                // manager->addFileToTypeSizeMap(file, FileManager::Downloads);
+                manager->addFileToTypeSizeMap(file, FileManager::Downloads);
                 if (manager->isDupe(file, FileManager::Downloads)) {
                     ShowNotification("Duplicate Detected, Open ReplicaReaper to delete: "
                                               , file.getFileName());
@@ -138,8 +161,7 @@ MainWindow::~MainWindow() {
 void MainWindow::closeEvent(QCloseEvent *event) {
     // if the "Run in Background" button is checked,
     if (this->settings.monitorMode) {
-        // Program will run in background to check for
-        // Updates to DownLoad Directory
+        // Program will run in background to check
         this->hide();
         event->ignore();
     } else {
